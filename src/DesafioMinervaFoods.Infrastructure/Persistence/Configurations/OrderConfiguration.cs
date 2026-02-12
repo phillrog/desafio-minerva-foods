@@ -27,6 +27,19 @@ namespace DesafioMinervaFoods.Infrastructure.Persistence.Configurations
                 .HasForeignKey(i => i.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.HasOne<Customer>()
+                .WithMany()
+                .HasForeignKey(o => o.CustomerId)
+                .IsRequired() 
+                .OnDelete(DeleteBehavior.Restrict); // Evita deletar cliente se houver pedidos
+
+            // Relacionamento com PaymentCondition (Obrigatório)
+            builder.HasOne<PaymentCondition>()
+                .WithMany()
+                .HasForeignKey(o => o.PaymentConditionId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.Property(o => o.CreatedAt).IsRequired();
         }
     }
