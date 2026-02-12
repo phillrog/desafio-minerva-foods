@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="DesafioMinervaFoods.API/DesafioMinervaFoods.API.csproj" />
+  <Project Path="DesafioMinervaFoods.Application/DesafioMinervaFoods.Application.csproj" />
+  <Project Path="DesafioMinervaFoods.Domain/DesafioMinervaFoods.Domain.csproj" />
+  <Project Path="DesafioMinervaFoods.Infrastructure/DesafioMinervaFoods.Infrastructure.csproj" />
+  <Project Path="DesafioMinervaFoods.Tests/DesafioMinervaFoods.Tests.csproj" />
+</Solution>
