@@ -14,6 +14,7 @@ namespace DesafioMinervaFoods.Domain.Entities
         public DateTime CreatedAt { get; private set; }
 
         public List<OrderItem> Items { get; private set; } = new();
+        public virtual DeliveryTerm? DeliveryTerm { get; private set; }
 
         public Order() {}
         public Order(Guid customerId, Guid paymentConditionId, List<OrderItem> items)
@@ -56,6 +57,14 @@ namespace DesafioMinervaFoods.Domain.Entities
         {
             Status = StatusEnum.Cancelado;
             RequiresManualApproval = false;            
+        }
+
+        public void DefinirPrazoEntrega(DeliveryTerm deliveryTerm)
+        {
+            if (deliveryTerm.OrderId != this.OrderId)
+                throw new InvalidOperationException("O prazo de entrega não pertence a este pedido.");
+
+            DeliveryTerm = deliveryTerm;
         }
     }
 }

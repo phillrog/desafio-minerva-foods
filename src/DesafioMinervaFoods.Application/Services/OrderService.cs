@@ -32,18 +32,15 @@ namespace DesafioMinervaFoods.Application.Services
 
             await _repository.AddAsync(order);
 
-            return Result<OrderResponse>.Success(new OrderResponse(
-                order.OrderId,
-                order.TotalAmount,
-                order.Status,
-                order.RequiresManualApproval));
+            return Result<OrderResponse>.Success(MapToResponse(order));
         }
 
         public async Task<Result<IEnumerable<OrderResponse>>> GetAllOrdersAsync()
         {
             var orders = await _repository.GetAllAsync();
-            return Result<IEnumerable<OrderResponse>>.Success(orders.Select(o => 
-                        new OrderResponse(o.OrderId, o.TotalAmount, o.Status, o.RequiresManualApproval)));
+            var response = orders.Select(MapToResponse);
+
+            return Result<IEnumerable<OrderResponse>>.Success(response);
         }
 
         public async Task<Result> ApproveOrderAsync(Guid orderId)
@@ -59,6 +56,18 @@ namespace DesafioMinervaFoods.Application.Services
             await _repository.UpdateAsync(order);
 
             return Result.Success();
+        }
+
+        private static OrderResponse MapToResponse(Order order)
+        {
+            return new OrderResponse(
+                order.OrderId,
+                order.TotalAmount,
+                order.Status,
+                order.RequiresManualApproval,
+                order.DeliveryTerm?.EstimatedDeliveryDate,
+                order.DeliveryTerm?.DeliveryDays
+            );
         }
     }
 }

@@ -6,5 +6,7 @@ namespace DesafioMinervaFoods.Application.DTOs
     Guid OrderId,
     decimal TotalAmount,
     StatusEnum Status,
-    bool RequiresManualApproval);
+    bool RequiresManualApproval,
+    DateTime? EstimatedDeliveryDate = null,
+    int? DeliveryDays = null);
 }

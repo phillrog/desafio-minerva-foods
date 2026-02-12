@@ -40,6 +40,12 @@ namespace DesafioMinervaFoods.Infrastructure.Persistence.Configurations
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Relacionamento 1:1 opcional com DeliveryTerms
+            builder.HasOne(o => o.DeliveryTerm)
+                .WithOne()
+                .HasForeignKey<DeliveryTerm>(d => d.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             builder.Property(o => o.CreatedAt).IsRequired();
         }
     }
