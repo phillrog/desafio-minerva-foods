@@ -7,6 +7,7 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace DesafioMinervaFoods.Infrastructure.Configs
 {
@@ -28,7 +29,12 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
             services.AddScoped<IOrderService, OrderService>();
 
             // FluentValidation - Registra todos os validadores automaticamente
-            services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+            // Pega todos os assemblies carregados que pertencem à sua solução
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(a => a.FullName!.StartsWith("DesafioMinervaFoods"))
+                .ToArray();
+
+            services.AddValidatorsFromAssemblies(assemblies);            
 
             return services;
         }

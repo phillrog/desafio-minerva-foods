@@ -2,20 +2,30 @@
 using DesafioMinervaFoods.Application.Interfaces;
 using DesafioMinervaFoods.Domain.Entities;
 using DesafioMinervaFoods.Domain.Interfaces.Repositories;
+using FluentValidation;
 
 namespace DesafioMinervaFoods.Application.Services
 {
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository _repository;
-
-        public OrderService(IOrderRepository repository)
+        private readonly IValidator<OrderCreateRequest> _validator;
+        public OrderService(IOrderRepository repository,
+            IValidator<OrderCreateRequest> validator)
         {
             _repository = repository;
+            _validator = validator;
         }
 
         public async Task<OrderResponse> CreateOrderAsync(OrderCreateRequest request)
         {
+            var validationResult = await _validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {            
+                throw new ValidationException(validationResult.Errors);
+            }
+
             var items = request.Items.Select(i => new OrderItem(i.ProductName, i.Quantity, i.UnitPrice)).ToList();
             var order = new Order(request.CustomerId, request.PaymentConditionId, items);
 
