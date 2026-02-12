@@ -16,6 +16,9 @@ builder.Services.AddApplication();
 
 var app = builder.Build();
 
+// Seed dos clientes e formas de pagamentos
+await app.UseSeedAsync();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
