@@ -1,0 +1,31 @@
+﻿services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - SA_PASSWORD=yourStrong(!)Password
+      - ACCEPT_EULA=Y
+    
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-Usa", "-PyourStrong(!)Password", "-Q", "select 1"]
+      interval: 1s
+      retries: 20
+    
+    ports:
+      - "1433:1433"
+      
+    volumes:
+      - ./sql:/scripts
+  
+  mssql-init:
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    container_name: mssql-init
+    depends_on:
+      mssql:
+        condition: service_healthy
+    volumes:
+      - ./sql:/scripts
+    environment:
+      - SA_PASSWORD=yourStrong(!)Password
+    command: /bin/bash /scripts/criarbanco.sh
+    
