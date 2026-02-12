@@ -1,4 +1,6 @@
 ﻿using DesafioMinervaFoods.Application.DTOs;
+using DesafioMinervaFoods.Application.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DesafioMinervaFoods.API.Controllers
@@ -7,24 +9,42 @@ namespace DesafioMinervaFoods.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        /// <summary>
-        /// Realiza a autenticação do usuário.
-        /// </summary>
-        /// <param name="request">Credenciais de acesso (usuário e senha).</param>
-        /// <response code="200">Autenticação realizada com sucesso, retorna o token JWT.</response>
-        /// <response code="401">Credenciais inválidas.</response>
-        [HttpPost("login")]
-        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public IActionResult Login([FromBody] LoginRequest request)
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly ITokenService _tokenService;
+
+        public AuthController(UserManager<IdentityUser> userManager, ITokenService tokenService)
         {
-            // TODO: Implementar lógica de geração de token posteriormente
-            if (request.Username == "admin" && request.Password == "123456")
+            _userManager = userManager;
+            _tokenService = tokenService;
+        }
+
+        /// <summary>
+        /// Realiza a autenticação do usuário e retorna um token JWT.
+        /// </summary>
+        /// <remarks>
+        /// Utilize o e-mail 'avaliador@minerva.com.br' e a senha configurada no Seed (ex: '1234') para testar.
+        /// O token retornado deve ser utilizado no cabeçalho 'Authorization' como 'Bearer {token}'.
+        /// </remarks>
+        /// <param name="request">Credenciais de acesso (Username deve ser o e-mail).</param>
+        /// <response code="200">Autenticação realizada com sucesso. Retorna o token e informações do usuário.</response>
+        /// <response code="401">Credenciais inválidas ou usuário não encontrado.</response>
+        [HttpPost("login")]
+        [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        {
+            // Valida usuário
+            var user = await _userManager.FindByEmailAsync(request.Username);
+
+            if (user != null && await _userManager.CheckPasswordAsync(user, request.Password))
             {
-                return Ok(new { token = "TOKEN_PROVISORIO" });
+                var roles = await _userManager.GetRolesAsync(user);
+                var response = _tokenService.GenerateToken(user.Email!, roles);
+
+                return Ok(response);
             }
 
-            return Unauthorized(new { mensagem = "Usuário ou senha inválidos." });
+            return Unauthorized(new { message = "Usuário ou senha inválidos." });
         }
     }
 }

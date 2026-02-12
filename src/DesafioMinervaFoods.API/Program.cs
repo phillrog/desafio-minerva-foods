@@ -14,6 +14,7 @@ builder.Services.AddCustomizedSwagger(typeof(Program));
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
+
 var app = builder.Build();
 
 // Seed dos clientes e formas de pagamentos
