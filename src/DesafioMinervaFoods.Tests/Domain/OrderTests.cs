@@ -72,4 +72,3 @@ namespace DesafioMinervaFoods.Tests.Domain
         }
     }
 }
-}
