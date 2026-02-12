@@ -106,5 +106,52 @@ namespace DesafioMinervaFoods.Tests.Application
             result.Data!.Status.Should().Be(StatusEnum.Criado);
             result.Data.RequiresManualApproval.Should().BeTrue();
         }
+
+        [Fact]
+        public void DeliveryTerm_Deve_CalcularDataCorreta_BaseadoNosDias()
+        {
+            // Arrange
+            var orderId = Guid.NewGuid();
+            var orderDate = new DateTime(2026, 01, 01);
+            var days = 10;
+
+            // Act
+            var term = new DeliveryTerm(orderId, days, orderDate);
+
+            // Assert
+            term.EstimatedDeliveryDate.Should().Be(new DateTime(2026, 01, 11));
+            term.DeliveryDays.Should().Be(10);
+        }
+
+        [Fact]
+        public async Task GetAllOrdersAsync_Deve_IncluirPrazoDeEntrega_QuandoExistir()
+        {
+            // Arrange
+            var order = new Order(Guid.NewGuid(), Guid.NewGuid(),
+                new List<OrderItem> { new("Produto", 1, 100) });
+
+            var days = 10;
+            // data pedido como base para o cálculo
+            var baseDate = order.OrderDate;
+
+            // somar os 10 dias.
+            var deliveryTerm = new DeliveryTerm(order.OrderId, days, baseDate);
+
+            // o objeto calculou internamente
+            var expectedDelivery = deliveryTerm.EstimatedDeliveryDate;
+
+            order.DefinirPrazoEntrega(deliveryTerm);
+
+            var orders = new List<Order> { order };
+
+            _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(orders);
+
+            // Act
+            var result = await _service.GetAllOrdersAsync();
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Data.First().EstimatedDeliveryDate.Should().Be(expectedDelivery);
+        }
     }
 }
