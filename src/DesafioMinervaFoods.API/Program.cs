@@ -1,4 +1,5 @@
 ﻿using DesafioMinervaFoods.Infrastructure.Configs;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -26,6 +27,14 @@ builder.Services.AddCustomizedSwagger(typeof(Program));
 // Dependency Injection Configuration
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
+
+// Registrar o MediatR para pehar os handler do application
+builder.Services.AddMediatR(cfg => {
+    cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+});
+
+// Registrar o AutoMapper
+builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 
 var app = builder.Build();
