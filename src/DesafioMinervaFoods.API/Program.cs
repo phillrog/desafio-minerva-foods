@@ -1,9 +1,22 @@
 ﻿using DesafioMinervaFoods.Infrastructure.Configs;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+.AddJsonOptions(options =>
+ {
+     // Ignora propriedades com valor nulo no JSON de saída
+     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+
+     // Aceita nomes de propriedades sem diferenciar maiúsculas/minúsculas no POST/PUT
+     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+
+     // Garante que o JSON de saída use camelCase (padrão de mercado)
+     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+ });
 builder.Services.AddEndpointsApiExplorer();
 
 // Swagger

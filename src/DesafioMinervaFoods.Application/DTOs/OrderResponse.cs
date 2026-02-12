@@ -1,8 +1,10 @@
-﻿namespace DesafioMinervaFoods.Application.DTOs
+﻿using DesafioMinervaFoods.Domain.Enums;
+
+namespace DesafioMinervaFoods.Application.DTOs
 {
     public record OrderResponse(
     Guid OrderId,
     decimal TotalAmount,
-    string Status,
+    StatusEnum Status,
     bool RequiresManualApproval);
 }
