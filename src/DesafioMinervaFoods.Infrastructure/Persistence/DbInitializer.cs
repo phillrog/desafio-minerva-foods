@@ -1,4 +1,5 @@
 ﻿using DesafioMinervaFoods.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace DesafioMinervaFoods.Infrastructure.Persistence
@@ -39,6 +40,48 @@ namespace DesafioMinervaFoods.Infrastructure.Persistence
                     throw; // Repassa para o logger no DependencyInjection
                 }
             });
+        }
+
+        public static async Task SeedIdentityAsync(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+        {
+            // Garante a Role
+            if (!await roleManager.RoleExistsAsync("Admin"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
+
+            var adminEmail = "avaliador@minerva.com.br";
+            var user = await userManager.FindByEmailAsync(adminEmail);
+
+            // Se o usuário não existe, cria
+            if (user == null)
+            {
+                user = new IdentityUser
+                {
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    EmailConfirmed = true
+                };
+
+                var result = await userManager.CreateAsync(user, "1234");
+
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    throw new Exception($"Erro ao criar usuário: {errors}");
+                }
+            }
+
+            // Verifica se o usuário já tem a role para evitar o conflito de duplicidade ou FK
+            if (!await userManager.IsInRoleAsync(user, "Admin"))
+            {
+                var roleResult = await userManager.AddToRoleAsync(user, "Admin");
+                if (!roleResult.Succeeded)
+                {
+                    var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    throw new Exception($"Erro ao atribuir role: {errors}");
+                }
+            }
         }
     }
 }

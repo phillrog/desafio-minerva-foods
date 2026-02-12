@@ -13,19 +13,4 @@
     
     ports:
       - "1433:1433"
-      
-    volumes:
-      - ./sql:/scripts
-  
-  mssql-init:
-    image: mcr.microsoft.com/mssql/server:2017-latest
-    container_name: mssql-init
-    depends_on:
-      mssql:
-        condition: service_healthy
-    volumes:
-      - ./sql:/scripts
-    environment:
-      - SA_PASSWORD=yourStrong(!)Password
-    command: /bin/bash /scripts/criarbanco.sh
     

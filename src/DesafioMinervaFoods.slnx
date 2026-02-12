@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/docker/">
+    <Project Path="../docker/docker-compose.dcproj" Id="81dded9d-158b-e303-5f62-77a2896d2a5a">
+      <Build />
+    </Project>
+  </Folder>
   <Project Path="DesafioMinervaFoods.API/DesafioMinervaFoods.API.csproj" />
   <Project Path="DesafioMinervaFoods.Application/DesafioMinervaFoods.Application.csproj" />
   <Project Path="DesafioMinervaFoods.Domain/DesafioMinervaFoods.Domain.csproj" />

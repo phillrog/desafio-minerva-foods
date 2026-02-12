@@ -4,13 +4,12 @@ using DesafioMinervaFoods.Domain.Interfaces.Repositories;
 using DesafioMinervaFoods.Infrastructure.Persistence;
 using DesafioMinervaFoods.Infrastructure.Persistence.Repositories;
 using FluentValidation;
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
 
 namespace DesafioMinervaFoods.Infrastructure.Configs
 {
@@ -18,10 +17,15 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            // DbContexts
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
+            // Repositórios
             services.AddScoped<IOrderRepository, OrderRepository>();
+
+            // JWT
+            services.AddAuthJWTConfiguration(configuration);
 
             return services;
         }
@@ -49,13 +53,22 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var context = services.GetRequiredService<AppDbContext>();
+                    // Pega os dois contextos
+                    var appContext = services.GetRequiredService<AppDbContext>();
+                    var authContext = services.GetRequiredService<AuthDbContext>();
 
-                    // Aplica migrations pendentes
-                    await context.Database.MigrateAsync();
+                    // Aplica migrations de ambos
+                    await appContext.Database.MigrateAsync();
+                    await authContext.Database.MigrateAsync();
 
-                    // Popula os dados iniciais
-                    await DbInitializer.SeedAsync(context);
+                    // Seed de Negócio
+                    await DbInitializer.SeedAsync(appContext);
+
+                    // Seed de Identidade (Passa os Managers, não o Contexto)
+                    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+                    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+                    await DbInitializer.SeedIdentityAsync(userManager, roleManager);
                 }
                 catch (Exception ex)
                 {
