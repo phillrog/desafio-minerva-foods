@@ -55,7 +55,7 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
                 x.Events = new JwtBearerEvents
                 {
                     OnChallenge = context =>
-                    {
+                    {   
                         context.HandleResponse();
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         context.Response.ContentType = "application/json";

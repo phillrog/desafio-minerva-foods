@@ -1,6 +1,5 @@
 ﻿using DesafioMinervaFoods.Application.DTOs;
 using DesafioMinervaFoods.Application.Interfaces;
-using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,22 +26,18 @@ namespace DesafioMinervaFoods.API.Controllers
         /// </remarks>
         /// <param name="request">Dados para criação do pedido.</param>
         /// <response code="201">Pedido criado com sucesso.</response>
-        /// <response code="400">Dados inválidos enviados na requisição.</response>
+        /// <response code="400">Dados inválidos enviados na requisição ou falha na validação.</response>
         [HttpPost]
         [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] OrderCreateRequest request)
         {
-            try
-            {
-                var result = await _orderService.CreateOrderAsync(request);
-                return CreatedAtAction(nameof(GetAll), new { id = result.OrderId }, result);
-            }
-            catch (ValidationException ex)
-            {
-                // Retorna os erros do FluentValidation de forma estruturada
-                return BadRequest(ex.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }));
-            }
+            var result = await _orderService.CreateOrderAsync(request);
+
+            if (!result.IsSuccess)
+                return BadRequest(result);
+
+            return CreatedAtAction(nameof(GetAll), result);
         }
 
         /// <summary>
@@ -62,15 +57,22 @@ namespace DesafioMinervaFoods.API.Controllers
         /// </summary>
         /// <param name="id">Identificador único do pedido.</param>
         /// <response code="204">Pedido aprovado com sucesso.</response>
+        /// <response code="400">Regra de negócio violada ou ID inválido.</response>
         /// <response code="404">Pedido não encontrado.</response>
         [HttpPut("{id}/approve")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Approve(Guid id)
         {
-            var success = await _orderService.ApproveOrderAsync(id);
-            if (!success)
-                return NotFound(new { mensagem = "Pedido não encontrado ou não requer aprovação." });
+            if (id == Guid.Empty)
+                return BadRequest(new { message = "Id inválido" });
+
+            var result = await _orderService.ApproveOrderAsync(id);
+
+            if (!result.IsSuccess)
+                return NotFound(result);
 
             return NoContent();
         }

@@ -1,4 +1,5 @@
-﻿using DesafioMinervaFoods.Application.DTOs;
+﻿using DesafioMinervaFoods.Application.Common;
+using DesafioMinervaFoods.Application.DTOs;
 using DesafioMinervaFoods.Application.Interfaces;
 using DesafioMinervaFoods.Domain.Entities;
 using DesafioMinervaFoods.Domain.Interfaces.Repositories;
@@ -17,13 +18,13 @@ namespace DesafioMinervaFoods.Application.Services
             _validator = validator;
         }
 
-        public async Task<OrderResponse> CreateOrderAsync(OrderCreateRequest request)
+        public async Task<Result<OrderResponse>> CreateOrderAsync(OrderCreateRequest request)
         {
             var validationResult = await _validator.ValidateAsync(request);
 
             if (!validationResult.IsValid)
-            {            
-                throw new ValidationException(validationResult.Errors);
+            {
+                return Result<OrderResponse>.Failure(validationResult.Errors.Select(e => e.ErrorMessage));
             }
 
             var items = request.Items.Select(i => new OrderItem(i.ProductName, i.Quantity, i.UnitPrice)).ToList();
@@ -31,23 +32,33 @@ namespace DesafioMinervaFoods.Application.Services
 
             await _repository.AddAsync(order);
 
-            return new OrderResponse(order.OrderId, order.TotalAmount, order.Status.ToString(), order.RequiresManualApproval);
+            return Result<OrderResponse>.Success(new OrderResponse(
+                order.OrderId,
+                order.TotalAmount,
+                order.Status,
+                order.RequiresManualApproval));
         }
 
-        public async Task<IEnumerable<OrderResponse>> GetAllOrdersAsync()
+        public async Task<Result<IEnumerable<OrderResponse>>> GetAllOrdersAsync()
         {
             var orders = await _repository.GetAllAsync();
-            return orders.Select(o => new OrderResponse(o.OrderId, o.TotalAmount, o.Status.ToString(), o.RequiresManualApproval));
+            return Result<IEnumerable<OrderResponse>>.Success(orders.Select(o => 
+                        new OrderResponse(o.OrderId, o.TotalAmount, o.Status, o.RequiresManualApproval)));
         }
 
-        public async Task<bool> ApproveOrderAsync(Guid orderId)
+        public async Task<Result> ApproveOrderAsync(Guid orderId)
         {
             var order = await _repository.GetByIdAsync(orderId);
-            if (order == null) return false;
+            if (order == null)
+            {
+                return Result.Failure("Pedido não encontrado ou não requer aprovação.");
+            }
 
             order.Aprovar();
+                
             await _repository.UpdateAsync(order);
-            return true;
+
+            return Result.Success();
         }
     }
 }
