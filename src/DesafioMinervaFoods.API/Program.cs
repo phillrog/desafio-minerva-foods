@@ -28,15 +28,6 @@ builder.Services.AddCustomizedSwagger(typeof(Program));
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
-// Registrar o MediatR para pehar os handler do application
-builder.Services.AddMediatR(cfg => {
-    cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-});
-
-// Registrar o AutoMapper
-builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
-
-
 var app = builder.Build();
 
 // Seed dos clientes e formas de pagamentos

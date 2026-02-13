@@ -1,5 +1,9 @@
 ﻿using DesafioMinervaFoods.Application.DTOs;
-using DesafioMinervaFoods.Application.Interfaces;
+using DesafioMinervaFoods.Application.Features.Orders.Commands.ApproveOrder;
+using DesafioMinervaFoods.Application.Features.Orders.Commands.CreateOrder;
+using DesafioMinervaFoods.Application.Features.Orders.Queries.GetAllOrders;
+using DesafioMinervaFoods.Application.Features.Orders.Queries.GetOrderById;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,11 +14,11 @@ namespace DesafioMinervaFoods.API.Controllers
     [Authorize]
     public class OrdersController : ControllerBase
     {
-        private readonly IOrderService _orderService;
+        private readonly IMediator _mediator;
 
-        public OrdersController(IOrderService orderService)
+        public OrdersController(IMediator mediator)
         {
-            _orderService = orderService;
+            _mediator = mediator;
         }
 
         /// <summary>
@@ -24,20 +28,20 @@ namespace DesafioMinervaFoods.API.Controllers
         /// Pedidos acima de R$ 5.000,00 serão criados com status 'Criado' e exigirão aprovação manual.
         /// Caso contrário, o status será 'Pago'.
         /// </remarks>
-        /// <param name="request">Dados para criação do pedido.</param>
+        /// <param name="command">Dados para criação do pedido.</param>
         /// <response code="201">Pedido criado com sucesso.</response>
         /// <response code="400">Dados inválidos enviados na requisição ou falha na validação.</response>
         [HttpPost]
         [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Create([FromBody] OrderCreateRequest request)
+        public async Task<IActionResult> Create([FromBody] CreateOrderCommand command)
         {
-            var result = await _orderService.CreateOrderAsync(request);
+            var result = await _mediator.Send(command);
 
             if (!result.IsSuccess)
                 return BadRequest(result);
 
-            return CreatedAtAction(nameof(GetAll), result);
+            return CreatedAtAction(nameof(GetById), new { id = result.Data.OrderId }, result);
         }
 
         /// <summary>
@@ -48,8 +52,27 @@ namespace DesafioMinervaFoods.API.Controllers
         [ProducesResponseType(typeof(IEnumerable<OrderResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
-            var orders = await _orderService.GetAllOrdersAsync();
-            return Ok(orders);
+            var result = await _mediator.Send(new GetAllOrdersQuery());
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Obtém os detalhes de um pedido específico por ID.
+        /// </summary>
+        /// <param name="id">Identificador único do pedido.</param>
+        /// <response code="200">Retorna os detalhes do pedido.</response>
+        /// <response code="404">Pedido não encontrado.</response>
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            var result = await _mediator.Send(new GetOrderByIdQuery(id));
+
+            if (!result.IsSuccess)
+                return NotFound(result);
+
+            return Ok(result);
         }
 
         /// <summary>
@@ -69,7 +92,7 @@ namespace DesafioMinervaFoods.API.Controllers
             if (id == Guid.Empty)
                 return BadRequest(new { message = "Id inválido" });
 
-            var result = await _orderService.ApproveOrderAsync(id);
+            var result = await _mediator.Send(new ApproveOrderCommand(id));
 
             if (!result.IsSuccess)
                 return NotFound(result);
