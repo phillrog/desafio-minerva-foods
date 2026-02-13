@@ -11,7 +11,7 @@ namespace DesafioMinervaFoods.Infrastructure.Persistence.Configurations
         {
             builder.ToTable("OrderItems");
 
-            builder.HasKey(i => i.OrderItemId);
+            builder.HasKey(i => i.Id);
 
             builder.Property(i => i.ProductName)
                 .HasMaxLength(150)

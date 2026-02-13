@@ -23,7 +23,7 @@ namespace DesafioMinervaFoods.Infrastructure.Identity
             if (user != null && await _userManager.CheckPasswordAsync(user, password))
             {
                 var roles = await _userManager.GetRolesAsync(user);
-                var response = _tokenService.GenerateToken(user.Email!, roles);
+                var response = _tokenService.GenerateToken(Guid.Parse(user.Id), user.Email!, roles);
                 return Result<LoginResponse>.Success(response);
             }
 

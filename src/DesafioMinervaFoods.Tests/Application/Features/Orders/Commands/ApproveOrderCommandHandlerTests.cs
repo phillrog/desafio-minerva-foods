@@ -76,7 +76,7 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
 
             // Assert
             // Verifica se o objeto passado para o Update é exatamente a instância que recuperou e alterou
-            _repositoryMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.OrderId == order.OrderId)), Times.Once);
+            _repositoryMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.Id == order.Id)), Times.Once);
         }
     }
 }

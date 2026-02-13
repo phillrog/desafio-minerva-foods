@@ -9,7 +9,7 @@ namespace DesafioMinervaFoods.Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<PaymentCondition> builder)
         {
             builder.ToTable("PaymentConditions");
-            builder.HasKey(p => p.PaymentConditionId);
+            builder.HasKey(p => p.Id);
             builder.Property(p => p.Description).HasMaxLength(100).IsRequired();
         }
     }

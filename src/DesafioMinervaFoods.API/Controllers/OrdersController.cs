@@ -41,7 +41,7 @@ namespace DesafioMinervaFoods.API.Controllers
             if (!result.IsSuccess)
                 return BadRequest(result);
 
-            return CreatedAtAction(nameof(GetById), new { id = result.Data.OrderId }, result);
+            return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result);
         }
 
         /// <summary>

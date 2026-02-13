@@ -19,7 +19,7 @@ namespace DesafioMinervaFoods.Infrastructure.Persistence.Repositories
         public async Task<Order?> GetByIdAsync(Guid id) =>
             await _context.Orders.Include(o => o.Items)
                                  .Include(o => o.DeliveryTerm)
-                                 .FirstOrDefaultAsync(o => o.OrderId == id);
+                                 .FirstOrDefaultAsync(o => o.Id == id);
 
         public async Task<IEnumerable<Order>> GetAllAsync() =>
             await _context.Orders.AsNoTracking()

@@ -1,20 +1,30 @@
-﻿using DesafioMinervaFoods.Domain.Entities;
+﻿using DesafioMinervaFoods.Application.Common.Interfaces;
+using DesafioMinervaFoods.Application.Interfaces;
+using DesafioMinervaFoods.Domain.Entities;
 using DesafioMinervaFoods.Infrastructure.Persistence;
 using DesafioMinervaFoods.Infrastructure.Persistence.Repositories;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace DesafioMinervaFoods.Tests.Infrastructure.Repositories
 {
     public class PaymentConditionRepositoryTests
     {
+        private readonly Mock<ICurrentUserService> _currentUserService;
+
+        public PaymentConditionRepositoryTests()
+        {
+            _currentUserService = new Mock<ICurrentUserService>();
+        }
+
         private AppDbContext CriarContextoInMemory()
         {
             var options = new DbContextOptionsBuilder<AppDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
-            return new AppDbContext(options);
+            return new AppDbContext(options, _currentUserService.Object);
         }
 
         [Fact]
@@ -23,7 +33,7 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Repositories
             // Arrange
             var context = CriarContextoInMemory();
             var condicao = new PaymentCondition("30 Dias", 30);
-            var paymentIdGerado = condicao.PaymentConditionId;
+            var paymentIdGerado = condicao.Id;
 
             context.Set<PaymentCondition>().Add(condicao);
             await context.SaveChangesAsync();

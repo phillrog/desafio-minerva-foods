@@ -4,6 +4,6 @@ namespace DesafioMinervaFoods.Application.Interfaces
 {
     public interface ITokenService
     {
-        LoginResponse GenerateToken(string email, IList<string> roles);
+        LoginResponse GenerateToken(Guid usuarioId, string email, IList<string> roles);
     }
 }

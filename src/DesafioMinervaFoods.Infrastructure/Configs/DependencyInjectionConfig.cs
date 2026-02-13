@@ -4,6 +4,7 @@ using DesafioMinervaFoods.Application.Common.Interfaces;
 using DesafioMinervaFoods.Domain.Interfaces.Repositories;
 using DesafioMinervaFoods.Infrastructure.Persistence;
 using DesafioMinervaFoods.Infrastructure.Persistence.Repositories;
+using DesafioMinervaFoods.Infrastructure.Services;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -19,6 +20,11 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            // Pegar informações do token da requisição
+            services.AddHttpContextAccessor();
+
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+
             // DbContexts
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));

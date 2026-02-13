@@ -30,7 +30,13 @@ namespace DesafioMinervaFoods.Tests.Infrastructure
             // Arrange
             var email = "avaliador@minervafoods.com.br";
             var password = "SenhaValida123";
-            var user = new IdentityUser { Email = email, UserName = email };
+            var user = new IdentityUser
+            {
+                Id = Guid.NewGuid().ToString(),
+                Email = email,
+                UserName = email
+            };
+
             var roles = new List<string> { "Admin" };
             var loginResponse = new LoginResponse { Token = "token_gerado", Username = email };
 
@@ -43,13 +49,14 @@ namespace DesafioMinervaFoods.Tests.Infrastructure
             _userManagerMock.Setup(u => u.GetRolesAsync(user))
                 .ReturnsAsync(roles);
 
-            _tokenServiceMock.Setup(t => t.GenerateToken(email, roles))
+            _tokenServiceMock.Setup(t => t.GenerateToken(It.IsAny<Guid>(), email, roles))
                 .Returns(loginResponse);
 
             // Act
             var result = await _service.AuthenticateAsync(email, password);
 
             // Assert
+            result.Should().NotBeNull();
             result.IsSuccess.Should().BeTrue();
             result.Data.Token.Should().Be("token_gerado");
         }

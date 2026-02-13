@@ -13,9 +13,9 @@ namespace DesafioMinervaFoods.Application.Mappings
             // Mapeamento do Pedido
             CreateMap<Order, OrderResponse>()
                 .ForMember(dest => dest.EstimatedDeliveryDate,
-                           opt => opt.MapFrom(src => src.DeliveryTerm.EstimatedDeliveryDate))
+                           opt => opt.MapFrom(src => src.DeliveryTerm != null ? src.DeliveryTerm.EstimatedDeliveryDate : (DateTime?)null))
                 .ForMember(dest => dest.DeliveryDays,
-                           opt => opt.MapFrom(src => src.DeliveryTerm.DeliveryDays))
+                           opt => opt.MapFrom(src => src.DeliveryTerm != null ? src.DeliveryTerm.DeliveryDays : (int?)null))
                 .ForMember(dest => dest.Items,
                            opt => opt.MapFrom(src => src.Items));
         }

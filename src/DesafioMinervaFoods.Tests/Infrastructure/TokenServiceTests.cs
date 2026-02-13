@@ -31,7 +31,7 @@ namespace DesafioMinervaFoods.Tests.Infrastructure
             var roles = new List<string> { "Admin", "User" };
 
             // Act
-            var response = _tokenService.GenerateToken(email, roles);
+            var response = _tokenService.GenerateToken(It.IsAny<Guid>(), email, roles);
 
             // Assert
             response.Should().NotBeNull();
@@ -58,7 +58,7 @@ namespace DesafioMinervaFoods.Tests.Infrastructure
             var roles = new List<string>();
 
             // Act
-            var response = _tokenService.GenerateToken(email, roles);
+            var response = _tokenService.GenerateToken(It.IsAny<Guid>(), email, roles);
 
             // Assert
             // Como é AddHours(2), a expiração deve ser maior que agora

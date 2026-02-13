@@ -2,13 +2,14 @@
 
 namespace DesafioMinervaFoods.Application.DTOs
 {
-    public record OrderResponse(
-        Guid OrderId,
-        decimal TotalAmount,
-        StatusEnum Status,
-        bool RequiresManualApproval,
-        DateTime? EstimatedDeliveryDate = null,
-        int? DeliveryDays = null,
-        List<OrderItemResponse>? Items = null
-    );
+    public record OrderResponse
+    {
+        public Guid Id { get; init; }
+        public decimal TotalAmount { get; init; }
+        public StatusEnum Status { get; init; }
+        public bool RequiresManualApproval { get; init; }
+        public DateTime? EstimatedDeliveryDate { get; init; }
+        public int? DeliveryDays { get; init; }
+        public List<OrderItemResponse> Items { get; init; } = new();
+    }
 }
