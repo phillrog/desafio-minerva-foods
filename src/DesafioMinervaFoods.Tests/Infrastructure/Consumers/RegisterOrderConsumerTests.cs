@@ -22,16 +22,16 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Consumers
         private readonly Mock<IPublishEndpoint> _publishMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly RegisterOrderConsumer _consumer;
-        private readonly Mock<ICurrentUserService> _currentUserService;
+        private readonly Mock<ICurrentUserService> _currentUserServiceMock;
 
         public RegisterOrderConsumerTests()
         {
-            _currentUserService = new Mock<ICurrentUserService>();
+            _currentUserServiceMock = new Mock<ICurrentUserService>();
             var options = new DbContextOptionsBuilder<AppDbContext>()
                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                .Options;
 
-            _context = new AppDbContext(options, _currentUserService.Object);
+            _context = new AppDbContext(options, _currentUserServiceMock.Object);
             _repositoryMock = new Mock<IOrderRepository>();
             _publishMock = new Mock<IPublishEndpoint>();
             _mapperMock = new Mock<IMapper>();
@@ -48,7 +48,7 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Consumers
         {
             // Arrange
             var customerId = Guid.NewGuid();
-            var command = new RegisterOrderCommand(customerId, Guid.NewGuid(), new List<OrderItemRequest>());
+            var command = new RegisterOrderCommand(customerId, Guid.NewGuid(), new List<OrderItemRequest>(), It.IsAny<Guid>());
 
             var orderFake = new Order(customerId, Guid.NewGuid(), new List<OrderItem>());
 

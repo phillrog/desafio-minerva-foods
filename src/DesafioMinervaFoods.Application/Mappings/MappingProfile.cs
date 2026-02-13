@@ -18,7 +18,11 @@ namespace DesafioMinervaFoods.Application.Mappings
                 .ForMember(dest => dest.DeliveryDays,
                            opt => opt.MapFrom(src => src.DeliveryTerm != null ? src.DeliveryTerm.DeliveryDays : (int?)null))
                 .ForMember(dest => dest.Items,
-                           opt => opt.MapFrom(src => src.Items));
+                           opt => opt.MapFrom(src => src.Items))
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Name))
+                .ForMember(dest => dest.PaymentDescription, opt => opt.MapFrom(src => src.PaymentCondition.Description))
+                .ForMember(dest => dest.NumberOfInstallments, opt => opt.MapFrom(src => src.PaymentCondition.NumberOfInstallments))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
 
             CreateMap<RegisterOrderCommand, Order>()
                 .ConstructUsing((src, context) =>

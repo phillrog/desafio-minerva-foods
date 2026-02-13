@@ -14,13 +14,15 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
     {
         private readonly Mock<IOrderRepository> _repositoryMock;
         private readonly Mock<IEventBus> _eventBusMock;
+        private readonly Mock<ICurrentUserService> _currentUserServiceMock;
         private readonly ApproveOrderCommandHandler _handler;
 
         public ApproveOrderCommandHandlerTests()
         {
             _repositoryMock = new Mock<IOrderRepository>();
             _eventBusMock = new Mock<IEventBus>();
-            _handler = new ApproveOrderCommandHandler(_repositoryMock.Object, _eventBusMock.Object);
+            _currentUserServiceMock = new Mock<ICurrentUserService>();
+            _handler = new ApproveOrderCommandHandler(_repositoryMock.Object, _eventBusMock.Object, _currentUserServiceMock.Object);
         }
 
         [Fact]

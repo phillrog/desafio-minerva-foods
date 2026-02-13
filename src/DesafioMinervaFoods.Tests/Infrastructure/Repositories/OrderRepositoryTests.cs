@@ -10,10 +10,10 @@ namespace DesafioMinervaFoods.Tests.Infrastructure
 {
     public class OrderRepositoryTests
     {
-        private readonly Mock<ICurrentUserService> _currentUserService;
+        private readonly Mock<ICurrentUserService> _currentUserServiceMock;
         public OrderRepositoryTests()
         {
-            _currentUserService = new Mock<ICurrentUserService>();
+            _currentUserServiceMock = new Mock<ICurrentUserService>();
         }
 
         [Fact]
@@ -25,7 +25,7 @@ namespace DesafioMinervaFoods.Tests.Infrastructure
                 .Options;
 
             // Vai gravar um pedido
-            using (var contextGrava = new AppDbContext(dbContextOptions, _currentUserService.Object))
+            using (var contextGrava = new AppDbContext(dbContextOptions, _currentUserServiceMock.Object))
             {
                 var repository = new OrderRepository(contextGrava);
                 var order = new Order(Guid.NewGuid(), Guid.NewGuid(),
@@ -36,7 +36,7 @@ namespace DesafioMinervaFoods.Tests.Infrastructure
             }
 
             // Assert - lê e garante a persistência
-            using (var contextLeitura = new AppDbContext(dbContextOptions, _currentUserService.Object))
+            using (var contextLeitura = new AppDbContext(dbContextOptions, _currentUserServiceMock.Object))
             {
                 var result = await contextLeitura.Orders.Include(o => o.Items)
                     .FirstOrDefaultAsync();

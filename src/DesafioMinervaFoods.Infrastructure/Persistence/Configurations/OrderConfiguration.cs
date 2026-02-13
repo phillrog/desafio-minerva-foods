@@ -47,6 +47,21 @@ namespace DesafioMinervaFoods.Infrastructure.Persistence.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Property(o => o.CreatedAt).IsRequired();
+
+            builder.HasOne(o => o.Customer)
+              .WithMany() // Se o Customer não tiver uma lista de Orders, use WithMany() vazio
+              .HasForeignKey(o => o.CustomerId)
+              .OnDelete(DeleteBehavior.Restrict);
+
+            // Mapeia o relacionamento com PaymentCondition
+            builder.HasOne(o => o.PaymentCondition)
+                  .WithMany()
+                  .HasForeignKey(o => o.PaymentConditionId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // Garante que o EF não tente criar colunas duplicadas
+            builder.Property(o => o.CustomerId).HasColumnName("CustomerId");
+            builder.Property(o => o.PaymentConditionId).HasColumnName("PaymentConditionId");
         }
     }
 }

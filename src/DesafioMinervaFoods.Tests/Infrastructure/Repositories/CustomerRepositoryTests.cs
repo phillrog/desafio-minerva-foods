@@ -10,11 +10,11 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Repositories
 {
     public class CustomerRepositoryTests
     {
-        private readonly Mock<ICurrentUserService> _currentUserService;
+        private readonly Mock<ICurrentUserService> _currentUserServiceMock;
 
         public CustomerRepositoryTests()
         {
-            _currentUserService = new Mock<ICurrentUserService>();
+            _currentUserServiceMock = new Mock<ICurrentUserService>();
         }
 
         private AppDbContext CriarContextoInMemory()
@@ -23,7 +23,7 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Repositories
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // Banco novo para cada teste
                 .Options;
 
-            return new AppDbContext(options, _currentUserService.Object);
+            return new AppDbContext(options, _currentUserServiceMock.Object);
         }
 
         [Fact]

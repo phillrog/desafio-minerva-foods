@@ -15,8 +15,8 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
         private readonly Mock<IOrderRepository> _orderRepoMock;
         private readonly Mock<ICustomerRepository> _customerRepoMock;
         private readonly Mock<IPaymentConditionRepository> _paymentRepoMock;
-        private readonly Mock<IMapper> _mapperMock;
-        private readonly Mock<IEventBus> _eventBus;
+        private readonly Mock<IEventBus> _eventBusMock;
+        private readonly Mock<ICurrentUserService> _currentUserServiceMock;
         private readonly CreateOrderCommandHandler _handler;
 
         public CreateOrderCommandHandlerTests()
@@ -24,17 +24,16 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
             _orderRepoMock = new Mock<IOrderRepository>();
             _customerRepoMock = new Mock<ICustomerRepository>();
             _paymentRepoMock = new Mock<IPaymentConditionRepository>();
-            _mapperMock = new Mock<IMapper>();
-            _eventBus = new Mock<IEventBus>();
+            _eventBusMock = new Mock<IEventBus>();
+            _currentUserServiceMock = new Mock<ICurrentUserService>();
 
             // Instanciando o validador real com os mocks dos repositórios
             var validator = new CreateOrderCommandValidator(_customerRepoMock.Object, _paymentRepoMock.Object);
 
             _handler = new CreateOrderCommandHandler(
-                _orderRepoMock.Object,
                 validator,
-                _mapperMock.Object,
-                _eventBus.Object);
+                _eventBusMock.Object,
+                _currentUserServiceMock.Object);
         }
 
         [Fact]
@@ -62,7 +61,7 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
             result.Data.Message.Should().Be("Pedido solicitado com sucesso!");
 
             // O Handler deve publicar o comando de registro no barramento
-            _eventBus.Verify(b => b.PublishAsync(
+            _eventBusMock.Verify(b => b.PublishAsync(
                 It.IsAny<RegisterOrderCommand>(),
                 It.IsAny<CancellationToken>()),
                 Times.Once);
@@ -88,7 +87,7 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
             result.Errors.Should().Contain(e => e.Contains("cliente informado não existe"));
 
             // Não deve publicar nada se a validação falhar
-            _eventBus.Verify(b => b.PublishAsync(It.IsAny<RegisterOrderCommand>(), It.IsAny<CancellationToken>()), Times.Never);
+            _eventBusMock.Verify(b => b.PublishAsync(It.IsAny<RegisterOrderCommand>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]

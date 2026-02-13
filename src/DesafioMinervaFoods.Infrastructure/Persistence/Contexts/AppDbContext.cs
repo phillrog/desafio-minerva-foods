@@ -50,21 +50,23 @@ namespace DesafioMinervaFoods.Infrastructure.Persistence
 
             if (!entries.Any()) return;
             
-            var currentUserId = _currentUserService.UserId ?? Guid.Empty;
+            var currentUserId = _currentUserService.UserId ?? null;
 
             foreach (var entidade in entries)
             {
+                var existingCreatedBy = entidade.Property("CreatedBy").CurrentValue;
+                var existingUpdatedBy = entidade.Property("UpdatedBy").CurrentValue;
                 switch (entidade.State)
                 {
                     // Criação
                     case EntityState.Added:
                         entidade.Property("CreatedAt").CurrentValue = DateTime.UtcNow;
-                        entidade.Property("CreatedBy").CurrentValue = currentUserId;
+                        entidade.Property("CreatedBy").CurrentValue = currentUserId ?? existingCreatedBy;
                         break;
                     // Alteração
                     case EntityState.Modified:
                         entidade.Property("UpdatedAt").CurrentValue = DateTime.UtcNow;
-                        entidade.Property("UpdatedBy").CurrentValue = currentUserId;
+                        entidade.Property("UpdatedBy").CurrentValue = currentUserId ?? existingUpdatedBy;
                         break;                    
                 }
             }
