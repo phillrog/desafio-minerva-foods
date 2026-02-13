@@ -11,7 +11,7 @@ namespace DesafioMinervaFoods.Infrastructure.Persistence
             // Se já houver clientes, não executa o seed
             if (context.Customers.Any()) return;
             
-            var customer = new Customer("Avaliador Minerva Foods Brasil", "avaliador@minerva.com.br");
+            var customer = new Customer("Avaliador Minerva Foods Brasil", "avaliador@minervafoods.com.br");
 
             var paymentConditions = new List<PaymentCondition>
             {
@@ -50,7 +50,7 @@ namespace DesafioMinervaFoods.Infrastructure.Persistence
                 await roleManager.CreateAsync(new IdentityRole("Admin"));
             }
 
-            var adminEmail = "avaliador@minerva.com.br";
+            var adminEmail = "avaliador@minervafoods.com.br";
             var user = await userManager.FindByEmailAsync(adminEmail);
 
             // Se o usuário não existe, cria

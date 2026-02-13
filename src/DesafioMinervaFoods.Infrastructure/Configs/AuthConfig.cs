@@ -73,6 +73,7 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
 
             // Services
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IIdentityService, IdentityService>();
 
             return services;
         }
