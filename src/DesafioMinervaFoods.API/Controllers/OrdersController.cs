@@ -22,26 +22,28 @@ namespace DesafioMinervaFoods.API.Controllers
         }
 
         /// <summary>
-        /// Cria um novo pedido no sistema.
+        /// Solicita a criação de um novo pedido no sistema (Processamento Assíncrono).
         /// </summary>
         /// <remarks>
-        /// Pedidos acima de R$ 5.000,00 serão criados com status 'Criado' e exigirão aprovação manual.
-        /// Caso contrário, o status será 'Pago'.
+        /// O pedido é enviado para uma fila de processamento. 
+        /// Pedidos acima de R$ 5.000,00 exigirão aprovação manual após o processamento.
+        /// O usuário será notificado via SignalR quando o ID for gerado com sucesso.
         /// </remarks>
-        /// <param name="command">Dados para criação do pedido.</param>
-        /// <response code="201">Pedido criado com sucesso.</response>
+        /// <param name="command">Dados para solicitação do pedido.</param>
+        /// <response code="202">Pedido solicitado com sucesso (em processamento).</response>
         /// <response code="400">Dados inválidos enviados na requisição ou falha na validação.</response>
         [HttpPost]
-        [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(OrderRquestedResponse), StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] CreateOrderCommand command)
         {
+            // O Mediator agora apenas valida e publica o comando na fila
             var result = await _mediator.Send(command);
 
             if (!result.IsSuccess)
                 return BadRequest(result);
 
-            return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result);
+            return Accepted(result);
         }
 
         /// <summary>
