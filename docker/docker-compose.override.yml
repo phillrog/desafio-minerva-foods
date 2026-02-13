@@ -14,3 +14,22 @@
     ports:
       - "1433:1433"
     
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: minerva-rabbitmq
+    ports:
+      - "5672:5672"   # Porta do protocolo AMQP
+      - "15672:15672" # Porta do Painel de Controle (Dashboard)
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: minerva-network

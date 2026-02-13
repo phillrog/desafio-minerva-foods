@@ -66,5 +66,15 @@ namespace DesafioMinervaFoods.Domain.Entities
 
             DeliveryTerm = deliveryTerm;
         }
+
+        public void DefinirStatusProcessando()
+        {
+            Status = StatusEnum.Processando;
+        }
+
+        public void DefinirStatusErro()
+        {
+            Status = StatusEnum.Erro;
+        }
     }
 }

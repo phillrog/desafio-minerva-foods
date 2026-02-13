@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using DesafioMinervaFoods.Application.Common;
+using DesafioMinervaFoods.Application.Common.Interfaces;
 using DesafioMinervaFoods.Application.DTOs;
+using DesafioMinervaFoods.Application.Events;
 using DesafioMinervaFoods.Domain.Entities;
 using DesafioMinervaFoods.Domain.Interfaces.Repositories;
 using FluentValidation;
@@ -13,15 +15,18 @@ namespace DesafioMinervaFoods.Application.Features.Orders.Commands.CreateOrder
         private readonly IOrderRepository _repository;
         private readonly IValidator<CreateOrderCommand> _validator;
         private readonly IMapper _mapper;
+        private readonly IEventBus _eventBus;
 
         public CreateOrderCommandHandler(
             IOrderRepository repository,
             IValidator<CreateOrderCommand> validator,
-            IMapper mapper)
+            IMapper mapper,
+            IEventBus eventBus)
         {
             _repository = repository;
             _validator = validator;
             _mapper = mapper;
+            _eventBus = eventBus;
         }
 
         public async Task<Result<OrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -41,6 +46,9 @@ namespace DesafioMinervaFoods.Application.Features.Orders.Commands.CreateOrder
 
             // grava
             await _repository.AddAsync(order);
+
+            // Joga o evento para a fila.             
+            await _eventBus.PublishAsync(new OrderCreatedEvent(order.Id, order.OrderDate), cancellationToken);
 
             var response = _mapper.Map<OrderResponse>(order);
 

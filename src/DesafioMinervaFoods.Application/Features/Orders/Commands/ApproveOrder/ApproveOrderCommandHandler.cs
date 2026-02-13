@@ -22,6 +22,11 @@ namespace DesafioMinervaFoods.Application.Features.Orders.Commands.ApproveOrder
                 return Result.Failure("Pedido não encontrado ou não requer aprovação.");
             }
 
+            // Regra de Negócio: O pedido precisa de aprovação?
+            if (!order.RequiresManualApproval)
+                return Result<bool>.Failure("Este pedido não requer aprovação manual.");
+
+            // Aprovar o pedido
             order.Aprovar();
 
             await _repository.UpdateAsync(order);

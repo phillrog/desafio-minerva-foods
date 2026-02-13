@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using DesafioMinervaFoods.Application.DTOs;
+using DesafioMinervaFoods.Application.Events;
 using DesafioMinervaFoods.Domain.Entities;
 
 namespace DesafioMinervaFoods.Application.Mappings
@@ -18,6 +19,15 @@ namespace DesafioMinervaFoods.Application.Mappings
                            opt => opt.MapFrom(src => src.DeliveryTerm != null ? src.DeliveryTerm.DeliveryDays : (int?)null))
                 .ForMember(dest => dest.Items,
                            opt => opt.MapFrom(src => src.Items));
+
+            CreateMap<RegisterOrderCommand, Order>()
+                .ConstructUsing((src, context) =>
+                {
+                    // Mapeia a lista de DTOs para Entidades antes de passar para o construtor
+                    var items = context.Mapper.Map<List<OrderItem>>(src.Items);
+                    return new Order(src.CustomerId, src.PaymentConditionId, items);
+                });
+
         }
     }
 }

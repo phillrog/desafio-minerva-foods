@@ -2,10 +2,13 @@
 using DesafioMinervaFoods.Application.Common.Behaviors;
 using DesafioMinervaFoods.Application.Common.Interfaces;
 using DesafioMinervaFoods.Domain.Interfaces.Repositories;
+using DesafioMinervaFoods.Infrastructure.Consumers;
+using DesafioMinervaFoods.Infrastructure.Messaging;
 using DesafioMinervaFoods.Infrastructure.Persistence;
 using DesafioMinervaFoods.Infrastructure.Persistence.Repositories;
 using DesafioMinervaFoods.Infrastructure.Services;
 using FluentValidation;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -98,6 +101,65 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
                     logger.LogError(ex, "Ocorreu um erro ao inicializar o Banco de Dados.");
                 }
             }
+        }
+
+        public static IServiceCollection AddMessaging(this IServiceCollection services, IConfiguration configuration)
+        {
+            var rabbitSettings = configuration.GetSection("RabbitMq");
+
+            services.AddMassTransit(x =>
+            {
+                // consumidor
+                x.AddConsumer<OrderCreatedConsumer>();
+
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host(rabbitSettings["Host"], h =>
+                    {
+                        h.Username(rabbitSettings["Username"]);
+                        h.Password(rabbitSettings["Password"]);
+                    });
+
+                    // Configuração de Resiliência com Polly (Retry) embutido no MassTransit
+                    cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+
+                    // Apenas para não ter que construir o outbox pattern
+                    cfg.UseInMemoryOutbox();                    
+
+                    cfg.ReceiveEndpoint("order-created-queue", e =>
+                    {
+                        // Define o nome da Exchange de Dead Letter
+                        // O RabbitMQ usará essa exchange para rotear mensagens que falharem
+                        e.BindDeadLetterQueue("order-created-queue-dead-letter-exchange", "order-created-queue-poison-messages", cb => {     
+                            // Aqui você pode definir regras extras, como expiração
+                            cb.Durable = true;
+                        });
+
+                        // 1. POLÍTICA DE RETRY (Resiliência)
+                        // Se o consumer lançar exceção, o MassTransit fará o NACK e tentará novamente 3 vezes.
+                        e.UseMessageRetry(r =>
+                        {
+                            r.Interval(3, TimeSpan.FromSeconds(5));
+                        });
+
+                        // 2. CIRCUIT BREAKER (Opcional, mas Senior)
+                        // Se a fila falhar consecutivamente por muito tempo, o Circuit Breaker "abre"
+                        // para não sobrecarregar o banco de dados.
+                        e.UseCircuitBreaker(cb =>
+                        {
+                            cb.TrackingPeriod = TimeSpan.FromMinutes(1);
+                            cb.TripThreshold = 15; // 15% de falhas
+                            cb.ActiveThreshold = 10; // Mínimo de 10 mensagens
+                            cb.ResetInterval = TimeSpan.FromMinutes(5);
+                        });
+                        e.ConfigureConsumer<OrderCreatedConsumer>(context);
+                    });
+                });
+            });
+
+            services.AddScoped<IEventBus, MassTransitEventBus>();
+
+            return services;
         }
     }
 }
