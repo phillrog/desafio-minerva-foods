@@ -1,15 +1,17 @@
-﻿using DesafioMinervaFoods.Domain.Interfaces.Repositories;
+﻿using DesafioMinervaFoods.Application.Common;
+using DesafioMinervaFoods.Application.Common.Behaviors;
+using DesafioMinervaFoods.Application.Common.Interfaces;
+using DesafioMinervaFoods.Domain.Interfaces.Repositories;
 using DesafioMinervaFoods.Infrastructure.Persistence;
 using DesafioMinervaFoods.Infrastructure.Persistence.Repositories;
 using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MediatR;
-using DesafioMinervaFoods.Application.Common;
 
 namespace DesafioMinervaFoods.Infrastructure.Configs
 {
@@ -29,6 +31,9 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
             // JWT
             services.AddAuthJWTConfiguration(configuration);
 
+            // UoW
+            services.AddScoped<IUnitOfWork>(provider => provider.GetService<AppDbContext>()!);
+
             return services;
         }
 
@@ -40,7 +45,13 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
             var applicationAssembly = typeof(Result).Assembly;
 
             // Registrar o MediatR usando o assembly da Application
-            services.AddMediatR(applicationAssembly);
+            services.AddMediatR(cfg=>
+            {
+                cfg.RegisterServicesFromAssembly(applicationAssembly);
+
+                // PIPELINE TRANSAÇÂO
+                cfg.AddOpenBehavior(typeof(TransactionBehavior<,>));
+            });
 
             // Registrar o AutoMapper usando o assembly da Application
             services.AddAutoMapper(applicationAssembly);
