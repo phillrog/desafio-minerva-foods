@@ -1,6 +1,6 @@
 ﻿using DesafioMinervaFoods.Application.DTOs;
-using DesafioMinervaFoods.Application.Interfaces;
-using Microsoft.AspNetCore.Identity;
+using DesafioMinervaFoods.Application.Features.Auth.Queries.Login;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DesafioMinervaFoods.API.Controllers
@@ -9,20 +9,18 @@ namespace DesafioMinervaFoods.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly ITokenService _tokenService;
+        private readonly IMediator _mediator;
 
-        public AuthController(UserManager<IdentityUser> userManager, ITokenService tokenService)
+        public AuthController(IMediator mediator)
         {
-            _userManager = userManager;
-            _tokenService = tokenService;
+            _mediator = mediator;
         }
 
         /// <summary>
         /// Realiza a autenticação do usuário e retorna um token JWT.
         /// </summary>
         /// <remarks>
-        /// Utilize o e-mail 'avaliador@minerva.com.br' e a senha configurada no Seed (ex: '1234') para testar.
+        /// Utilize o e-mail 'avaliador@minervafoods.com.br' e a senha configurada no Seed (ex: '1234') para testar.
         /// O token retornado deve ser utilizado no cabeçalho 'Authorization' como 'Bearer {token}'.
         /// </remarks>
         /// <param name="request">Credenciais de acesso (Username deve ser o e-mail).</param>
@@ -34,17 +32,13 @@ namespace DesafioMinervaFoods.API.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             // Valida usuário
-            var user = await _userManager.FindByEmailAsync(request.Username);
+            var query = new LoginQuery(request.Username, request.Password);
+            var result = await _mediator.Send(query);
 
-            if (user != null && await _userManager.CheckPasswordAsync(user, request.Password))
-            {
-                var roles = await _userManager.GetRolesAsync(user);
-                var response = _tokenService.GenerateToken(user.Email!, roles);
+            if (!result.IsSuccess)
+                return Unauthorized(new { message = result.Errors.FirstOrDefault() });
 
-                return Ok(response);
-            }
-
-            return Unauthorized(new { message = "Usuário ou senha inválidos." });
+            return Ok(result.Data);
         }
     }
 }
