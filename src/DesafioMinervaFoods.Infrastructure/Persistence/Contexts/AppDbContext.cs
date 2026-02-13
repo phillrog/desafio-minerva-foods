@@ -58,13 +58,13 @@ namespace DesafioMinervaFoods.Infrastructure.Persistence
                 {
                     // Criação
                     case EntityState.Added:
-                        entidade.Property("CreatedAt").CurrentValue = DateTime.UtcNow; ;
+                        entidade.Property("CreatedAt").CurrentValue = DateTime.UtcNow;
                         entidade.Property("CreatedBy").CurrentValue = currentUserId;
                         break;
                     // Alteração
                     case EntityState.Modified:
-                        entidade.Property("UpdatedAt").CurrentValue = false;
-                        entidade.Property("UpdatedBy").CurrentValue = DateTime.UtcNow; ;
+                        entidade.Property("UpdatedAt").CurrentValue = DateTime.UtcNow;
+                        entidade.Property("UpdatedBy").CurrentValue = currentUserId;
                         break;                    
                 }
             }
