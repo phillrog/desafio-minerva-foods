@@ -17,14 +17,16 @@ namespace DesafioMinervaFoods.Infrastructure.Identity
             _configuration = configuration;
         }
 
-        public LoginResponse GenerateToken(string email, IList<string> roles)
+        public LoginResponse GenerateToken(Guid usuarioId, string email, IList<string> roles)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]!);
 
             var claims = new List<Claim>
             {
+                new (ClaimTypes.NameIdentifier, usuarioId.ToString()),
                 new (ClaimTypes.Email, email),
+                new (JwtRegisteredClaimNames.Sub, email),
                 new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 

@@ -29,7 +29,13 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Queries
             var orderId = Guid.NewGuid();
             var order = new Order(Guid.NewGuid(), Guid.NewGuid(), new List<OrderItem>());
 
-            var responseEsperada = new OrderResponse(orderId, 150.00m, StatusEnum.Criado, true);
+            var responseEsperada = new OrderResponse
+            {
+                Id = orderId,
+                TotalAmount = 150.00m,
+                Status = StatusEnum.Criado,
+                RequiresManualApproval = true
+            };
 
             _repositoryMock.Setup(r => r.GetByIdAsync(orderId))
                 .ReturnsAsync(order);
@@ -45,7 +51,7 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Queries
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().NotBeNull();
-            result.Data.OrderId.Should().Be(orderId);
+            result.Data.Id.Should().Be(orderId);
             _repositoryMock.Verify(r => r.GetByIdAsync(orderId), Times.Once);
         }
 

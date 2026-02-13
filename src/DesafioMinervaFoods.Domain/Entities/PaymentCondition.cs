@@ -1,19 +1,18 @@
 ﻿
 namespace DesafioMinervaFoods.Domain.Entities
 {
-    public class PaymentCondition
+    public class PaymentCondition : Entity<Guid>
     {
-        public Guid PaymentConditionId { get; private set; }
         public string Description { get; private set; }
         public int NumberOfInstallments { get; private set; }
-        public DateTime CreatedAt { get; private set; }
-        public PaymentCondition() {}
+
+        protected PaymentCondition() { }
+
         public PaymentCondition(string description, int installments)
         {
-            PaymentConditionId = Guid.NewGuid();
+            Id = Guid.NewGuid();
             Description = description;
             NumberOfInstallments = installments;
-            CreatedAt = DateTime.UtcNow;
         }
     }
 }

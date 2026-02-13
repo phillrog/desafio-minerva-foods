@@ -10,7 +10,7 @@ namespace DesafioMinervaFoods.Infrastructure.Persistence.Configurations
         {
             builder.ToTable("Orders");
 
-            builder.HasKey(o => o.OrderId);
+            builder.HasKey(o => o.Id);
 
             builder.Property(o => o.TotalAmount)
                 .HasPrecision(18, 2)

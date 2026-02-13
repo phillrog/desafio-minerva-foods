@@ -11,6 +11,6 @@ namespace DesafioMinervaFoods.Infrastructure.Persistence.Repositories
 
         public async Task<bool> ExistsAsync(Guid id)
             => await _context.Set<PaymentCondition>()
-                             .AnyAsync(p => p.PaymentConditionId == id);
+                             .AnyAsync(p => p.Id == id);
     }
 }
