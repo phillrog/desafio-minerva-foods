@@ -1,6 +1,4 @@
-﻿using DesafioMinervaFoods.Application.Interfaces;
-using DesafioMinervaFoods.Application.Services;
-using DesafioMinervaFoods.Domain.Interfaces.Repositories;
+﻿using DesafioMinervaFoods.Domain.Interfaces.Repositories;
 using DesafioMinervaFoods.Infrastructure.Persistence;
 using DesafioMinervaFoods.Infrastructure.Persistence.Repositories;
 using FluentValidation;
@@ -10,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MediatR;
+using DesafioMinervaFoods.Application.Common;
 
 namespace DesafioMinervaFoods.Infrastructure.Configs
 {
@@ -23,6 +23,8 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
 
             // Repositórios
             services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<IPaymentConditionRepository, PaymentConditionRepository>();
 
             // JWT
             services.AddAuthJWTConfiguration(configuration);
@@ -33,15 +35,18 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             // Serviços de Aplicação
-            services.AddScoped<IOrderService, OrderService>();
+            
+            // assembly path
+            var applicationAssembly = typeof(Result).Assembly;
 
-            // FluentValidation - Registra todos os validadores automaticamente
-            // Pega todos os assemblies carregados que pertencem à sua solução
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-                .Where(a => a.FullName!.StartsWith("DesafioMinervaFoods"))
-                .ToArray();
+            // Registrar o MediatR usando o assembly da Application
+            services.AddMediatR(applicationAssembly);
 
-            services.AddValidatorsFromAssemblies(assemblies);
+            // Registrar o AutoMapper usando o assembly da Application
+            services.AddAutoMapper(applicationAssembly);
+
+            // Validadores
+            services.AddValidatorsFromAssembly(applicationAssembly);
 
             return services;
         }
