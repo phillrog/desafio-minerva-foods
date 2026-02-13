@@ -1,37 +1,47 @@
 ﻿using DesafioMinervaFoods.Application.Common;
+using DesafioMinervaFoods.Application.Common.Interfaces;
+using DesafioMinervaFoods.Application.DTOs;
+using DesafioMinervaFoods.Application.Events;
 using DesafioMinervaFoods.Domain.Interfaces.Repositories;
 using MediatR;
 
 namespace DesafioMinervaFoods.Application.Features.Orders.Commands.ApproveOrder
 {
-    public class ApproveOrderCommandHandler : IRequestHandler<ApproveOrderCommand, Result>
+    public class ApproveOrderCommandHandler : IRequestHandler<ApproveOrderCommand, Result<ProcessOrderApprovalResponse>>
     {
         private readonly IOrderRepository _repository;
+        private readonly IEventBus _eventBus;
 
-        public ApproveOrderCommandHandler(IOrderRepository repository)
+        public ApproveOrderCommandHandler(IOrderRepository repository, IEventBus eventBus)
         {
             _repository = repository;
+            _eventBus = eventBus;
         }
 
-        public async Task<Result> Handle(ApproveOrderCommand request, CancellationToken cancellationToken)
+        public async Task<Result<ProcessOrderApprovalResponse>> Handle(ApproveOrderCommand request, CancellationToken cancellationToken)
         {
             var order = await _repository.GetByIdAsync(request.OrderId);
 
             if (order == null)
             {
-                return Result.Failure("Pedido não encontrado ou não requer aprovação.");
+                return Result<ProcessOrderApprovalResponse>.Failure("Pedido não encontrado ou não requer aprovação.");
             }
 
-            // Regra de Negócio: O pedido precisa de aprovação?
+            // O pedido precisa de aprovação?
             if (!order.RequiresManualApproval)
-                return Result<bool>.Failure("Este pedido não requer aprovação manual.");
+            {
+                return Result<ProcessOrderApprovalResponse>.Failure("Este pedido não requer aprovação manual ou já foi processado.");
+            }
 
-            // Aprovar o pedido
-            order.Aprovar();
+            // coloca na fila
+            await _eventBus.PublishAsync(new ProcessOrderApprovalCommand(
+                request.OrderId
+            ), cancellationToken);
 
-            await _repository.UpdateAsync(order);
-
-            return Result.Success();
+            // retorna para usuário
+            return Result<ProcessOrderApprovalResponse>.Success(
+                new ProcessOrderApprovalResponse("Solicitação de aprovação enviada com sucesso!")
+            );
         }
     }
 }

@@ -19,6 +19,7 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
                 x.AddConsumer<OrderCreatedConsumer>();
                 x.AddConsumer<RegisterOrderConsumer>();
                 x.AddConsumer<OrderNotificationConsumer>();
+                x.AddConsumer<ApproveOrderConsumer>();
 
                 x.UsingRabbitMq((context, cfg) =>
                 {
@@ -135,6 +136,36 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
 
                 // Configura o Consumer de Notificação que vai "falar" com o SignalR
                 e.ConfigureConsumer<OrderNotificationConsumer>(context);
+            });
+
+            cfg.ReceiveEndpoint("approve-order-queue", e =>
+            {
+                // 1. CONFIGURAÇÃO DE DEAD LETTER
+                // Se a aprovação falhar após todas as tentativas, a mensagem vai para cá.
+                e.BindDeadLetterQueue("approve-order-dead-letter-exchange", "approve-order-poison-messages", cb =>
+                {
+                    cb.Durable = true;
+                });
+
+                // 2. POLÍTICA DE RETRY
+                // Em aprovações, o Retry é vital caso haja um "concurrency conflict" (dois processos tentando atualizar o pedido ao mesmo tempo).
+                e.UseMessageRetry(r =>
+                {
+                    r.Interval(3, TimeSpan.FromSeconds(5));
+                });
+
+                // 3. CIRCUIT BREAKER
+                // Protege o sistema se o serviço de persistência estiver instável.
+                e.UseCircuitBreaker(cb =>
+                {
+                    cb.TrackingPeriod = TimeSpan.FromMinutes(1);
+                    cb.TripThreshold = 15;
+                    cb.ActiveThreshold = 10;
+                    cb.ResetInterval = TimeSpan.FromMinutes(5);
+                });
+
+                // Registra o Consumer de Aprovação que acabamos de criar
+                e.ConfigureConsumer<ApproveOrderConsumer>(context);
             });
         }
     }

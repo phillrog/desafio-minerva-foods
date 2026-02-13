@@ -1,4 +1,5 @@
-﻿using DesafioMinervaFoods.Application.DTOs;
+﻿using DesafioMinervaFoods.Application.Common;
+using DesafioMinervaFoods.Application.DTOs;
 using DesafioMinervaFoods.Application.Features.Orders.Commands.ApproveOrder;
 using DesafioMinervaFoods.Application.Features.Orders.Commands.CreateOrder;
 using DesafioMinervaFoods.Application.Features.Orders.Queries.GetAllOrders;
@@ -78,28 +79,34 @@ namespace DesafioMinervaFoods.API.Controllers
         }
 
         /// <summary>
-        /// Aprova manualmente um pedido que requer análise.
+        /// Aprova manualmente um pedido que requer análise (Processamento Assíncrono).
         /// </summary>
         /// <param name="id">Identificador único do pedido.</param>
-        /// <response code="204">Pedido aprovado com sucesso.</response>
+        /// <response code="202">Solicitação de aprovação aceita e enviada para processamento.</response>
         /// <response code="400">Regra de negócio violada ou ID inválido.</response>
         /// <response code="404">Pedido não encontrado.</response>
         [HttpPut("{id}/approve")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProcessOrderApprovalResponse), StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Approve(Guid id)
         {
             if (id == Guid.Empty)
-                return BadRequest(new { message = "Id inválido" });
+                return BadRequest(Result.Failure("Id inválido"));
 
             var result = await _mediator.Send(new ApproveOrderCommand(id));
 
             if (!result.IsSuccess)
-                return NotFound(result);
+            {
+                // Se o erro for "não encontrado", 404. Se for regra de negócio, 400.
+                if (result.Errors.Any(e => e.Contains("não encontrado")))
+                    return NotFound(result);
 
-            return NoContent();
+                return BadRequest(result);
+            }
+
+            return Accepted(result);
         }
     }
 }
