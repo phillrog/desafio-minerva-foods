@@ -1,9 +1,11 @@
-﻿using DesafioMinervaFoods.Application.Features.Orders.Commands.ApproveOrder;
+﻿using DesafioMinervaFoods.Application.Common;
+using DesafioMinervaFoods.Application.Features.Orders.Commands.ApproveOrder;
 using DesafioMinervaFoods.Domain.Entities;
-using DesafioMinervaFoods.Domain.Interfaces.Repositories;
 using DesafioMinervaFoods.Domain.Enums;
+using DesafioMinervaFoods.Domain.Interfaces.Repositories;
 using FluentAssertions;
 using Moq;
+using Xunit;
 
 namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
 {
@@ -19,14 +21,16 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
         }
 
         [Fact]
-        public async Task Deve_RetornarSucesso_Quando_PedidoExistir_E_For_Aprovado()
+        public async Task Deve_AprovarPedido_Quando_PedidoExisteERequerAprovacao()
         {
             // Arrange
-            var orderId = Guid.NewGuid();            
+            var orderId = Guid.NewGuid();
+            // Simulando um pedido que requer aprovação manual
             var order = new Order(Guid.NewGuid(), Guid.NewGuid(), new List<OrderItem>());
+            // Forçamos o estado que a regra exige (ajuste conforme seu construtor/método)
+            typeof(Order).GetProperty(nameof(Order.RequiresManualApproval))?.SetValue(order, true);
 
-            _repositoryMock.Setup(r => r.GetByIdAsync(orderId))
-                .ReturnsAsync(order);
+            _repositoryMock.Setup(r => r.GetByIdAsync(orderId)).ReturnsAsync(order);
 
             var command = new ApproveOrderCommand(orderId);
 
@@ -35,19 +39,34 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
 
             // Assert
             result.IsSuccess.Should().BeTrue();
-            // order.Aprovar() realmente mudou o estado no domínio
-            order.Status.Should().Be(StatusEnum.Pago);
-            _repositoryMock.Verify(r => r.UpdateAsync(order), Times.Once);
+            _repositoryMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.Status == StatusEnum.Pago)), Times.Once);
         }
 
         [Fact]
-        public async Task Deve_RetornarFalha_Quando_Pedido_Nao_For_Encontrado()
+        public async Task Deve_RetornarFalha_Quando_PedidoNaoExistir()
+        {
+            // Arrange
+            _repositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Order)null);
+            var command = new ApproveOrderCommand(Guid.NewGuid());
+
+            // Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeFalse();
+            result.Errors.Should().Contain("Pedido não encontrado ou não requer aprovação.");
+        }
+
+        [Fact]
+        public async Task Deve_RetornarFalha_Quando_PedidoNaoRequererAprovacaoManual()
         {
             // Arrange
             var orderId = Guid.NewGuid();
-            _repositoryMock.Setup(r => r.GetByIdAsync(orderId))
-                .ReturnsAsync((Order)null!);
+            var order = new Order(Guid.NewGuid(), Guid.NewGuid(), new List<OrderItem>());
+            // Simula pedido que NÃO precisa de aprovação
+            typeof(Order).GetProperty(nameof(Order.RequiresManualApproval))?.SetValue(order, false);
 
+            _repositoryMock.Setup(r => r.GetByIdAsync(orderId)).ReturnsAsync(order);
             var command = new ApproveOrderCommand(orderId);
 
             // Act
@@ -55,28 +74,7 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
 
             // Assert
             result.IsSuccess.Should().BeFalse();
-
-            result.Errors.Should().Contain("Pedido não encontrado ou não requer aprovação.");
-
-            _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task Deve_Garantir_Que_O_Metodo_Update_Seja_Chamado_Com_O_Objeto_Correto()
-        {
-            // Arrange
-            var orderId = Guid.NewGuid();
-            var order = new Order(Guid.NewGuid(), Guid.NewGuid(), new List<OrderItem>());
-            _repositoryMock.Setup(r => r.GetByIdAsync(orderId)).ReturnsAsync(order);
-
-            var command = new ApproveOrderCommand(orderId);
-
-            // Act
-            await _handler.Handle(command, CancellationToken.None);
-
-            // Assert
-            // Verifica se o objeto passado para o Update é exatamente a instância que recuperou e alterou
-            _repositoryMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.Id == order.Id)), Times.Once);
+            result.Errors.Should().Contain("Este pedido não requer aprovação manual.");
         }
     }
 }

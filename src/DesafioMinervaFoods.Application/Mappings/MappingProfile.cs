@@ -23,10 +23,12 @@ namespace DesafioMinervaFoods.Application.Mappings
             CreateMap<RegisterOrderCommand, Order>()
                 .ConstructUsing((src, context) =>
                 {
-                    // Mapeia a lista de DTOs para Entidades antes de passar para o construtor
                     var items = context.Mapper.Map<List<OrderItem>>(src.Items);
                     return new Order(src.CustomerId, src.PaymentConditionId, items);
                 });
+
+            CreateMap<OrderItemRequest, OrderItem>()
+                .ConstructUsing(src => new OrderItem(src.ProductName, src.Quantity, src.UnitPrice));
 
         }
     }

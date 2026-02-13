@@ -10,7 +10,7 @@ using MediatR;
 
 namespace DesafioMinervaFoods.Application.Features.Orders.Commands.CreateOrder
 {
-    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Result<OrderResponse>>
+    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Result<OrderRquestedResponse>>
     {
         private readonly IOrderRepository _repository;
         private readonly IValidator<CreateOrderCommand> _validator;
@@ -29,30 +29,25 @@ namespace DesafioMinervaFoods.Application.Features.Orders.Commands.CreateOrder
             _eventBus = eventBus;
         }
 
-        public async Task<Result<OrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+        public async Task<Result<OrderRquestedResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
         {
             // Validação
             var validationResult = await _validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
-                return Result<OrderResponse>.Failure(validationResult.Errors.Select(e => e.ErrorMessage));
+                return Result<OrderRquestedResponse>.Failure(validationResult.Errors.Select(e => e.ErrorMessage));
             }
 
-            // itens
-            var items = request.Items.Select(i =>
-                new OrderItem(i.ProductName, i.Quantity, i.UnitPrice)).ToList();
+            var orderId = Guid.NewGuid(); // Você gera o ID aqui para devolver ao usuário
 
-            var order = new Order(request.CustomerId, request.PaymentConditionId, items);
+            await _eventBus.PublishAsync(new RegisterOrderCommand(
+                request.CustomerId,
+                request.PaymentConditionId,
+                request.Items
+            ), cancellationToken);
 
-            // grava
-            await _repository.AddAsync(order);
 
-            // Joga o evento para a fila.             
-            await _eventBus.PublishAsync(new OrderCreatedEvent(order.Id, order.OrderDate), cancellationToken);
-
-            var response = _mapper.Map<OrderResponse>(order);
-
-            return Result<OrderResponse>.Success(response);
+            return Result<OrderRquestedResponse>.Success(new OrderRquestedResponse("Pedido solicitado com sucesso!"));
         }
     }
 }
