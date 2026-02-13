@@ -39,8 +39,8 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Queries
     {
         // Se o seu OrderResponse agora é um record com propriedades { get; init }, 
         // use a inicialização de objeto:
-        new OrderResponse { Id = Guid.NewGuid(), TotalAmount = 100.00m, Status = StatusEnum.Criado },
-        new OrderResponse { Id = Guid.NewGuid(), TotalAmount = 200.00m, Status = StatusEnum.Criado }
+        new OrderResponse { Id = Guid.NewGuid(), TotalAmount = 100.00m, Status = nameof(StatusEnum.Criado) },
+        new OrderResponse { Id = Guid.NewGuid(), TotalAmount = 200.00m, Status = nameof(StatusEnum.Criado) }
     };
 
             _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(pedidosFicticios);

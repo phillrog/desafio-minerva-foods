@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste SignalR Minerva</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+</head>
+<body>
+    <h1>Esperando Notificação...</h1>
+    <div id="status">Desconectado</div>
+    <ul id="messages"></ul>
+
+    <script>
+        // 1. Configura a conexão 
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("http://localhost:5001/orderHub") // <-- Verifique se a porta é 5001
+            .build();
+
+        // 2. Escutar o evento que você definiu no Consumer
+        connection.on("OrderNotification", (data) => {
+            console.log("Recebido:", data);
+            const li = document.createElement("li");
+            li.textContent = `Pedido: ${data.orderId} - ${data.message}`;
+            document.getElementById("messages").appendChild(li);
+            alert("CHEGOU! Pedido: " + data.orderId);
+        });
+
+        // 3. Iniciar a conexão
+        connection.start()
+            .then(() => {
+                document.getElementById("status").innerText = "CONECTADO!";
+                console.log("Conectado ao Hub!");
+            })
+            .catch(err => console.error("Erro ao conectar:", err));
+    </script>
+</body>
+</html>

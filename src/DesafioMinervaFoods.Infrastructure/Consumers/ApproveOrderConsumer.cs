@@ -29,6 +29,7 @@ namespace DesafioMinervaFoods.Infrastructure.Consumers
             if (order != null && order.RequiresManualApproval)
             {
                 order.Aprovar();
+                order.AlteradoPorUsuario(msg.UserId);
 
                 await _repository.UpdateAsync(order);
                 await _context.SaveChangesAsync();

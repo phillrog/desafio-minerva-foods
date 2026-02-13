@@ -33,6 +33,7 @@ namespace DesafioMinervaFoods.Infrastructure.Consumers
             var order = _mapper.Map<Order>(msg);
 
             order.DefinirStatusProcessando();
+            order.CriadoPorUsuario(msg.UserId);
 
             await _repository.AddAsync(order);
             await _context.SaveChangesAsync();

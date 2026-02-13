@@ -13,18 +13,18 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Consumers
     {
         private readonly AppDbContext _context;
         private readonly OrderCreatedConsumer _consumer;
-        private readonly Mock<ICurrentUserService> _currentUserService;
+        private readonly Mock<ICurrentUserService> _currentUserServiceMock;
         
         public OrderCreatedConsumerTests()
         {
-            _currentUserService = new Mock<ICurrentUserService>();
+            _currentUserServiceMock = new Mock<ICurrentUserService>();
 
             // Configura um banco em memória para não precisar de um SQL Server real nos testes
             var options = new DbContextOptionsBuilder<AppDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
-            _context = new AppDbContext(options, _currentUserService.Object);
+            _context = new AppDbContext(options, _currentUserServiceMock.Object);
             _consumer = new OrderCreatedConsumer(_context);
         }
 

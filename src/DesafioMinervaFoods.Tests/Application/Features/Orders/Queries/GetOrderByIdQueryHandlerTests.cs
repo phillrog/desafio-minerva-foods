@@ -33,7 +33,7 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Queries
             {
                 Id = orderId,
                 TotalAmount = 150.00m,
-                Status = StatusEnum.Criado,
+                Status = nameof(StatusEnum.Criado),
                 RequiresManualApproval = true
             };
 

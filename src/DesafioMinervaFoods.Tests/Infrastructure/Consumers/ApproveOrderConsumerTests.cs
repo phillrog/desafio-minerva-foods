@@ -49,7 +49,7 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Consumers
             // Garantimos que o pedido precisa de aprovação manual
             typeof(Order).GetProperty(nameof(Order.RequiresManualApproval))?.SetValue(order, true);
 
-            var command = new ProcessOrderApprovalCommand(orderId);
+            var command = new ProcessOrderApprovalCommand(orderId, It.IsAny<Guid>());
 
             // Mock do contexto do MassTransit
             var consumeContextMock = new Mock<ConsumeContext<ProcessOrderApprovalCommand>>();
@@ -74,7 +74,7 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Consumers
         public async Task Deve_Ignorar_Quando_PedidoNaoExistir()
         {
             // Arrange
-            var command = new ProcessOrderApprovalCommand(Guid.NewGuid());
+            var command = new ProcessOrderApprovalCommand(Guid.NewGuid(), It.IsAny<Guid>());
             var consumeContextMock = new Mock<ConsumeContext<ProcessOrderApprovalCommand>>();
             consumeContextMock.Setup(c => c.Message).Returns(command);
 

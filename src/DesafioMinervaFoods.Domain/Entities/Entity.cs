@@ -12,7 +12,16 @@
 
         // Alteração
         public DateTime? UpdatedAt { get; internal set; }
-        public Guid? UpdatedBy { get; internal set; }        
+        public Guid? UpdatedBy { get; internal set; }
 
+        public void CriadoPorUsuario(Guid userId)
+        {
+            CreatedBy = userId;
+        }
+
+        public void AlteradoPorUsuario(Guid userId)
+        {
+            UpdatedBy = userId;
+        }
     }
 }

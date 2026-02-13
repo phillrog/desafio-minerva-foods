@@ -14,6 +14,8 @@ namespace DesafioMinervaFoods.Domain.Entities
         // Relacionamentos
         public List<OrderItem> Items { get; private set; } = new();
         public virtual DeliveryTerm? DeliveryTerm { get; private set; }
+        public virtual Customer Customer { get; private set; }
+        public virtual PaymentCondition PaymentCondition { get; private set; }
 
         // Construtor protegido para o EF
         protected Order() { }
@@ -70,11 +72,6 @@ namespace DesafioMinervaFoods.Domain.Entities
         public void DefinirStatusProcessando()
         {
             Status = StatusEnum.Processando;
-        }
-
-        public void DefinirStatusErro()
-        {
-            Status = StatusEnum.Erro;
-        }
+        }        
     }
 }
