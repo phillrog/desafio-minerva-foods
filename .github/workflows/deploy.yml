@@ -22,16 +22,15 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: test # Só compila se os testes passarem
+    needs: test
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - name: Build Project
-        # Compila a solução para garantir que está tudo OK
-        run: dotnet build ./src/DesafioMinervaFoods.slnx -c Release --no-restore
+      - name: Build Project        
+        run: dotnet build ./src/DesafioMinervaFoods.slnx -c Release
 
   deploy:
     runs-on: ubuntu-latest
