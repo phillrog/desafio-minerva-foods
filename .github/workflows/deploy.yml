@@ -35,16 +35,15 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build # Agora o deploy depende do build passar
+    needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
+      
       - name: Install Railway CLI
         run: npm install -g @railway/cli
+
       - name: Deploy to Railway
-        run: railway up -e production -s ${{ secrets.RAILWAY_SERVICE_ID }} --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: railway up -e production -s ${{ secrets.RAILWAY_SERVICE_ID }} --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
