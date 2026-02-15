@@ -39,7 +39,7 @@ namespace DesafioMinervaFoods.Infrastructure.Consumers
                     order.Id,
                     order.CustomerId,
                     "Sucesso",
-                    "Pedido aprovado com sucesso e enviado para processamento!"
+                    "Pedido aprovado com sucesso!"
                 ));
             }
         }
