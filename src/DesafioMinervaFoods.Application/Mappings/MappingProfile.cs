@@ -34,6 +34,8 @@ namespace DesafioMinervaFoods.Application.Mappings
             CreateMap<OrderItemRequest, OrderItem>()
                 .ConstructUsing(src => new OrderItem(src.ProductName, src.Quantity, src.UnitPrice));
 
+            CreateMap<Customer, CustomerResponse>();
+            CreateMap<PaymentCondition, PaymentConditionResponse>();
         }
     }
 }

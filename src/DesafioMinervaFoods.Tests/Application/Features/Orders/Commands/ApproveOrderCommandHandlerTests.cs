@@ -7,6 +7,7 @@ using DesafioMinervaFoods.Domain.Entities;
 using DesafioMinervaFoods.Domain.Interfaces.Repositories;
 using FluentAssertions;
 using Moq;
+using System.Reflection;
 
 namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
 {
@@ -22,7 +23,11 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
             _repositoryMock = new Mock<IOrderRepository>();
             _eventBusMock = new Mock<IEventBus>();
             _currentUserServiceMock = new Mock<ICurrentUserService>();
-            _handler = new ApproveOrderCommandHandler(_repositoryMock.Object, _eventBusMock.Object, _currentUserServiceMock.Object);
+
+            _handler = new ApproveOrderCommandHandler(
+                _repositoryMock.Object,
+                _eventBusMock.Object,
+                _currentUserServiceMock.Object);
         }
 
         [Fact]
@@ -30,12 +35,18 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
         {
             // Arrange
             var orderId = Guid.NewGuid();
-            var order = new Order(Guid.NewGuid(), Guid.NewGuid(), new List<OrderItem>());
+            var userId = Guid.NewGuid();
+            var order = new Order(userId, Guid.NewGuid(), new List<OrderItem>());
 
-            // Simula o estado necessário para passar na regra de negócio
-            typeof(Order).GetProperty(nameof(Order.RequiresManualApproval))?.SetValue(order, true);
+            // Configura o Mock do serviço de usuário atual
+            _currentUserServiceMock.Setup(s => s.UserId).Returns(userId);
 
-            _repositoryMock.Setup(r => r.GetByIdAsync(orderId)).ReturnsAsync(order);
+            // Ajusta o estado interno do pedido via Reflection
+            SetPrivateProperty(order, nameof(Order.CreatedBy), userId);
+            SetPrivateProperty(order, nameof(Order.RequiresManualApproval), true);
+
+            // Mock do repositório esperando o ID do pedido e o ID do usuário logado
+            _repositoryMock.Setup(r => r.GetByIdAsync(orderId, userId)).ReturnsAsync(order);
 
             var command = new ApproveOrderCommand(orderId);
 
@@ -46,13 +57,13 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
             result.IsSuccess.Should().BeTrue();
             result.Data.Message.Should().Be("Solicitação de aprovação enviada com sucesso!");
 
-            // VERIFICAÇÃO CHAVE: Garante que o comando foi para a fila
+            // VERIFICAÇÃO: Garante que a mensagem foi para a fila
             _eventBusMock.Verify(b => b.PublishAsync(
                 It.Is<ProcessOrderApprovalCommand>(c => c.OrderId == orderId),
                 It.IsAny<CancellationToken>()),
                 Times.Once);
 
-            // GARANTIA: O Handler NÃO deve atualizar o banco diretamente agora
+            // GARANTIA: O Handler não deve atualizar o banco diretamente (o worker fará isso)
             _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Never);
         }
 
@@ -60,7 +71,12 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
         public async Task Deve_RetornarFalha_Quando_PedidoNaoExistir()
         {
             // Arrange
-            _repositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Order)null);
+            var userId = Guid.NewGuid();
+            _currentUserServiceMock.Setup(s => s.UserId).Returns(userId);
+
+            // Retorna null simulando que o pedido não existe ou não pertence ao usuário
+            _repositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), userId)).ReturnsAsync((Order)null!);
+
             var command = new ApproveOrderCommand(Guid.NewGuid());
 
             // Act
@@ -71,7 +87,10 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
             result.Errors.Should().Contain(e => e.Contains("não encontrado"));
 
             // Não deve publicar nada na fila
-            _eventBusMock.Verify(b => b.PublishAsync(It.IsAny<ProcessOrderApprovalCommand>(), It.IsAny<CancellationToken>()), Times.Never);
+            _eventBusMock.Verify(b => b.PublishAsync(
+                It.IsAny<ProcessOrderApprovalCommand>(),
+                It.IsAny<CancellationToken>()),
+                Times.Never);
         }
 
         [Fact]
@@ -79,12 +98,16 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
         {
             // Arrange
             var orderId = Guid.NewGuid();
-            var order = new Order(Guid.NewGuid(), Guid.NewGuid(), new List<OrderItem>());
+            var userId = Guid.NewGuid();
+            var order = new Order(userId, Guid.NewGuid(), new List<OrderItem>());
 
-            // Simula pedido que NÃO precisa de aprovação (ou já foi aprovado)
-            typeof(Order).GetProperty(nameof(Order.RequiresManualApproval))?.SetValue(order, false);
+            _currentUserServiceMock.Setup(s => s.UserId).Returns(userId);
 
-            _repositoryMock.Setup(r => r.GetByIdAsync(orderId)).ReturnsAsync(order);
+            // Simula pedido que NÃO precisa de aprovação (ex: valor baixo ou já processado)
+            SetPrivateProperty(order, nameof(Order.RequiresManualApproval), false);
+
+            _repositoryMock.Setup(r => r.GetByIdAsync(orderId, userId)).ReturnsAsync(order);
+
             var command = new ApproveOrderCommand(orderId);
 
             // Act
@@ -94,8 +117,20 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Commands
             result.IsSuccess.Should().BeFalse();
             result.Errors.Should().Contain(e => e.Contains("não requer aprovação manual"));
 
-            // Não deve publicar nada na fila
-            _eventBusMock.Verify(b => b.PublishAsync(It.IsAny<ProcessOrderApprovalCommand>(), It.IsAny<CancellationToken>()), Times.Never);
+            // Não deve publicar na fila
+            _eventBusMock.Verify(b => b.PublishAsync(
+                It.IsAny<ProcessOrderApprovalCommand>(),
+                It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+
+        /// <summary>
+        /// Helper para setar propriedades privadas/somente leitura durante os testes
+        /// </summary>
+        private static void SetPrivateProperty(object obj, string propertyName, object value)
+        {
+            var prop = obj.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            prop?.SetValue(obj, value);
         }
     }
 }

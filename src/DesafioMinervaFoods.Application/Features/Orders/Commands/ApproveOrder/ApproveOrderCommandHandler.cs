@@ -24,7 +24,8 @@ namespace DesafioMinervaFoods.Application.Features.Orders.Commands.ApproveOrder
 
         public async Task<Result<ProcessOrderApprovalResponse>> Handle(ApproveOrderCommand request, CancellationToken cancellationToken)
         {
-            var order = await _repository.GetByIdAsync(request.OrderId);
+            var userId = _currentUserService.UserId ?? Guid.Empty;
+            var order = await _repository.GetByIdAsync(request.OrderId, userId);
 
             if (order == null)
             {
@@ -36,8 +37,6 @@ namespace DesafioMinervaFoods.Application.Features.Orders.Commands.ApproveOrder
             {
                 return Result<ProcessOrderApprovalResponse>.Failure("Este pedido não requer aprovação manual ou já foi processado.");
             }
-
-            var userId = _currentUserService.UserId ?? Guid.Empty;
 
             // coloca na fila
             await _eventBus.PublishAsync(new ProcessOrderApprovalCommand(

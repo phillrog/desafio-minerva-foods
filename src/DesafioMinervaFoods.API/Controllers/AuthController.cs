@@ -36,9 +36,9 @@ namespace DesafioMinervaFoods.API.Controllers
             var result = await _mediator.Send(query);
 
             if (!result.IsSuccess)
-                return Unauthorized(new { message = result.Errors.FirstOrDefault() });
+                return Unauthorized(result);
 
-            return Ok(result.Data);
+            return Ok(result);
         }
     }
 }
