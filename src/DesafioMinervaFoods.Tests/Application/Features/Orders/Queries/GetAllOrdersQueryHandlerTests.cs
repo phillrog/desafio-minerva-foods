@@ -6,6 +6,7 @@ using DesafioMinervaFoods.Domain.Interfaces.Repositories;
 using DesafioMinervaFoods.Domain.Enums;
 using FluentAssertions;
 using Moq;
+using DesafioMinervaFoods.Application.Common.Interfaces;
 
 namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Queries
 {
@@ -13,13 +14,15 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Queries
     {
         private readonly Mock<IOrderRepository> _repositoryMock;
         private readonly Mock<IMapper> _mapperMock;
+        private readonly Mock<ICurrentUserService> _currentUserServiceMock;
         private readonly GetAllOrdersQueryHandler _handler;
 
         public GetAllOrdersQueryHandlerTests()
         {
             _repositoryMock = new Mock<IOrderRepository>();
             _mapperMock = new Mock<IMapper>();
-            _handler = new GetAllOrdersQueryHandler(_repositoryMock.Object, _mapperMock.Object);
+            _currentUserServiceMock = new Mock<ICurrentUserService>();
+            _handler = new GetAllOrdersQueryHandler(_repositoryMock.Object, _mapperMock.Object, _currentUserServiceMock.Object);
         }
 
         [Fact]
@@ -36,16 +39,14 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Queries
     };
 
             var respostaEsperada = new List<OrderResponse>
-    {
-        // Se o seu OrderResponse agora é um record com propriedades { get; init }, 
-        // use a inicialização de objeto:
-        new OrderResponse { Id = Guid.NewGuid(), TotalAmount = 100.00m, Status = nameof(StatusEnum.Criado) },
-        new OrderResponse { Id = Guid.NewGuid(), TotalAmount = 200.00m, Status = nameof(StatusEnum.Criado) }
-    };
+            {
 
-            _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(pedidosFicticios);
+                new OrderResponse { Id = Guid.NewGuid(), TotalAmount = 100.00m, Status = nameof(StatusEnum.Criado) },
+                new OrderResponse { Id = Guid.NewGuid(), TotalAmount = 200.00m, Status = nameof(StatusEnum.Criado) }
+            };
 
-            // DICA: Use It.IsAny para evitar problemas de comparação de referência de listas
+            _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<Guid>())).ReturnsAsync(pedidosFicticios);
+
             _mapperMock.Setup(m => m.Map<IEnumerable<OrderResponse>>(It.IsAny<IEnumerable<Order>>()))
                        .Returns(respostaEsperada);
 
@@ -65,7 +66,7 @@ namespace DesafioMinervaFoods.Tests.Application.Features.Orders.Queries
         {
             // Arrange
             var pedidosVazios = new List<Order>();
-            _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(pedidosVazios);
+            _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<Guid>())).ReturnsAsync(pedidosVazios);
 
             _mapperMock.Setup(m => m.Map<IEnumerable<OrderResponse>>(pedidosVazios))
                        .Returns(new List<OrderResponse>());

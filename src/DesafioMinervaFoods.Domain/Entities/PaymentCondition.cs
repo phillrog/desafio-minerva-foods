@@ -6,7 +6,7 @@ namespace DesafioMinervaFoods.Domain.Entities
         public string Description { get; private set; }
         public int NumberOfInstallments { get; private set; }
 
-        protected PaymentCondition() { }
+        public PaymentCondition() { }
 
         public PaymentCondition(string description, int installments)
         {

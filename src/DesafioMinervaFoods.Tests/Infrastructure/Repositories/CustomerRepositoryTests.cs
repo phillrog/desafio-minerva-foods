@@ -60,5 +60,45 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Repositories
             // Assert
             existe.Should().BeFalse();
         }
+
+        [Fact]
+        public async Task Deve_RetornarTodosOsClientes_Quando_ExistiremNoBanco()
+        {
+            // Arrange
+            var context = CriarContextoInMemory();
+
+            // Criando alguns clientes para o teste
+            var cliente1 = new Customer("Cliente A", "a@teste.com");
+            var cliente2 = new Customer("Cliente B", "b@teste.com");
+
+            await context.Customers.AddRangeAsync(cliente1, cliente2);
+            await context.SaveChangesAsync();
+
+            var repository = new CustomerRepository(context);
+
+            // Act
+            var clientes = await repository.GetAllAsync();
+
+            // Assert
+            clientes.Should().NotBeNull();
+            clientes.Should().HaveCount(2);
+            clientes.Should().Contain(c => c.Name == "Cliente A");
+            clientes.Should().Contain(c => c.Name == "Cliente B");
+        }
+
+        [Fact]
+        public async Task Deve_RetornarListaVazia_Quando_NaoHouverClientes()
+        {
+            // Arrange
+            var context = CriarContextoInMemory(); // Banco novo/vazio
+            var repository = new CustomerRepository(context);
+
+            // Act
+            var clientes = await repository.GetAllAsync();
+
+            // Assert
+            clientes.Should().NotBeNull();
+            clientes.Should().BeEmpty();
+        }
     }
 }

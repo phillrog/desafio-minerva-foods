@@ -11,6 +11,7 @@ using FluentAssertions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using System.Reflection;
 using Xunit;
 
 namespace DesafioMinervaFoods.Tests.Infrastructure.Consumers
@@ -48,12 +49,21 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Consumers
         {
             // Arrange
             var customerId = Guid.NewGuid();
-            var command = new RegisterOrderCommand(customerId, Guid.NewGuid(), new List<OrderItemRequest>(), It.IsAny<Guid>());
+            var userId = Guid.NewGuid(); // ID do usuário que está registrando
+            var paymentId = Guid.NewGuid();
 
-            var orderFake = new Order(customerId, Guid.NewGuid(), new List<OrderItem>());
+            // Comando com dados concretos
+            var command = new RegisterOrderCommand(customerId, paymentId, new List<OrderItemRequest>(), userId);
 
-            // Simula o mapeamento do comando para a entidade
-            _mapperMock.Setup(m => m.Map<Order>(It.IsAny<RegisterOrderCommand>())).Returns(orderFake);
+            // Entidade fake que o Mapper retornará
+            var orderFake = new Order(customerId, paymentId, new List<OrderItem>());
+
+            // Garante que a entidade comece com um status diferente para validar a alteração
+            SetPrivateProperty(orderFake, nameof(Order.Status), StatusEnum.Processando);
+
+            // Simula o mapeamento
+            _mapperMock.Setup(m => m.Map<Order>(It.IsAny<RegisterOrderCommand>()))
+                       .Returns(orderFake);
 
             // Mock do MassTransit ConsumeContext
             var consumeContextMock = new Mock<ConsumeContext<RegisterOrderCommand>>();
@@ -63,15 +73,34 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Consumers
             await _consumer.Consume(consumeContextMock.Object);
 
             // Assert
-            // 1. Verificou se definiu o status (Lógica de Domínio)
-            orderFake.Status.Should().Be(StatusEnum.Processando);
 
-            // 2. Verificou se persistiu via repositório
+            // 1. Verificou se a lógica de negócio alterou o status para Processando
+            orderFake.Status.Should().Be(StatusEnum.Pago);
+
+            // 2. Verificou se persistiu via repositório o objeto mapeado
             _repositoryMock.Verify(r => r.AddAsync(It.Is<Order>(o => o.Id == orderFake.Id)), Times.Once);
 
-            // 3. Verificou se publicou os dois eventos esperados
-            _publishMock.Verify(p => p.Publish(It.IsAny<OrderCreatedEvent>(), It.IsAny<CancellationToken>()), Times.Once);
-            _publishMock.Verify(p => p.Publish(It.IsAny<OrderProcessedEvent>(), It.IsAny<CancellationToken>()), Times.Once);
+            // 3. Verificou a publicação dos eventos de integração
+            // Evento de criação (Geralmente dispara o início do fluxo)
+            _publishMock.Verify(p => p.Publish(
+                It.Is<OrderCreatedEvent>(e => e.OrderId == orderFake.Id),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            // Evento de processamento (Notifica o status atual)
+            _publishMock.Verify(p => p.Publish(
+                It.Is<OrderProcessedEvent>(e => e.Id == orderFake.Id && e.Title == "Sucesso"),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Helper para setar propriedades privadas/somente leitura durante os testes
+        /// </summary>
+        private static void SetPrivateProperty(object obj, string propertyName, object value)
+        {
+            var prop = obj.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            prop?.SetValue(obj, value);
         }
     }
 }

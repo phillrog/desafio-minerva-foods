@@ -8,7 +8,7 @@ using FluentAssertions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using Xunit;
+using System.Reflection;
 
 namespace DesafioMinervaFoods.Tests.Infrastructure.Consumers
 {
@@ -18,17 +18,17 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Consumers
         private readonly Mock<IOrderRepository> _repositoryMock;
         private readonly Mock<IPublishEndpoint> _publishMock;
         private readonly ApproveOrderConsumer _consumer;
-        private readonly Mock<ICurrentUserService> _icurrentUserService;
+        private readonly Mock<ICurrentUserService> _currentUserServiceMock;
 
         public ApproveOrderConsumerTests()
         {
-            _icurrentUserService = new Mock<ICurrentUserService>();
+            _currentUserServiceMock = new Mock<ICurrentUserService>();
             // Configuração do Banco em Memória
             var options = new DbContextOptionsBuilder<AppDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
-            _context = new AppDbContext(options, _icurrentUserService.Object);
+            _context = new AppDbContext(options, _currentUserServiceMock.Object);
             _repositoryMock = new Mock<IOrderRepository>();
             _publishMock = new Mock<IPublishEndpoint>();
 
@@ -44,28 +44,37 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Consumers
             // Arrange
             var orderId = Guid.NewGuid();
             var customerId = Guid.NewGuid();
+            var userId = Guid.NewGuid(); // ID do usuário que está aprovando
+
             var order = new Order(customerId, Guid.NewGuid(), new List<OrderItem>());
 
-            // Garantimos que o pedido precisa de aprovação manual
-            typeof(Order).GetProperty(nameof(Order.RequiresManualApproval))?.SetValue(order, true);
+            // IMPORTANTE: Garantir que o ID da entidade seja o mesmo que o comando vai buscar
+            SetPrivateProperty(order, nameof(Order.Id), orderId);
+            SetPrivateProperty(order, nameof(Order.RequiresManualApproval), true);
 
-            var command = new ProcessOrderApprovalCommand(orderId, It.IsAny<Guid>());
+            // Criamos o comando com o ID correto
+            var command = new ProcessOrderApprovalCommand(orderId, userId);
 
             // Mock do contexto do MassTransit
             var consumeContextMock = new Mock<ConsumeContext<ProcessOrderApprovalCommand>>();
             consumeContextMock.Setup(c => c.Message).Returns(command);
 
-            _repositoryMock.Setup(r => r.GetByIdAsync(orderId)).ReturnsAsync(order);
+            // Mock do Repositório: Quando buscar o orderId (com qualquer userId), retorna o pedido
+            _repositoryMock.Setup(r => r.GetByIdAsync(orderId, It.IsAny<Guid?>()))
+                           .ReturnsAsync(order);
 
             // Act
             await _consumer.Consume(consumeContextMock.Object);
 
             // Assert
-            order.RequiresManualApproval.Should().BeFalse();
+            order.RequiresManualApproval.Should().BeFalse("O consumer deveria ter alterado para false");
 
-            _repositoryMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.Id == order.Id)), Times.Once);
+            // Verifica se o Update foi chamado para o pedido correto
+            _repositoryMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.Id == orderId)), Times.Once);
+
+            // Verifica se o evento de sucesso foi publicado
             _publishMock.Verify(p => p.Publish(
-                It.Is<OrderProcessedEvent>(e => e.Id == order.Id && e.Title == "Sucesso"),
+                It.Is<OrderProcessedEvent>(e => e.Id == orderId && e.Title == "Sucesso"),
                 It.IsAny<CancellationToken>()),
                 Times.Once);
         }
@@ -78,7 +87,7 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Consumers
             var consumeContextMock = new Mock<ConsumeContext<ProcessOrderApprovalCommand>>();
             consumeContextMock.Setup(c => c.Message).Returns(command);
 
-            _repositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Order)null);
+            _repositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<Guid>())).ReturnsAsync((Order)null);
 
             // Act
             await _consumer.Consume(consumeContextMock.Object);
@@ -86,6 +95,15 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Consumers
             // Assert
             _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Never);
             _publishMock.Verify(p => p.Publish(It.IsAny<OrderProcessedEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Helper para setar propriedades privadas/somente leitura durante os testes
+        /// </summary>
+        private static void SetPrivateProperty(object obj, string propertyName, object value)
+        {
+            var prop = obj.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            prop?.SetValue(obj, value);
         }
     }
 }

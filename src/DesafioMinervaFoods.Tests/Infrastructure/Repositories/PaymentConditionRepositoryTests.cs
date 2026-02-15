@@ -61,5 +61,44 @@ namespace DesafioMinervaFoods.Tests.Infrastructure.Repositories
             // Assert
             existe.Should().BeFalse();
         }
+
+        [Fact]
+        public async Task Deve_RetornarTodasAsCondicoesDePagamento_Quando_ExistiremNoBanco()
+        {
+            // Arrange
+            var context = CriarContextoInMemory();
+
+            var condicao1 = new PaymentCondition("À Vista", 1);
+            var condicao2 = new PaymentCondition("30/60 Dias", 2);
+
+            await context.PaymentConditions.AddRangeAsync(condicao1, condicao2);
+            await context.SaveChangesAsync();
+
+            var repository = new PaymentConditionRepository(context);
+
+            // Act
+            var resultado = await repository.GetAllAsync();
+
+            // Assert
+            resultado.Should().NotBeNull();
+            resultado.Should().HaveCount(2);
+            resultado.Should().Contain(p => p.Description == "À Vista");
+            resultado.Should().Contain(p => p.Description == "30/60 Dias");
+        }
+
+        [Fact]
+        public async Task Deve_RetornarListaVazia_Quando_NaoHouverCondicoesDePagamento()
+        {
+            // Arrange
+            var context = CriarContextoInMemory();
+            var repository = new PaymentConditionRepository(context);
+
+            // Act
+            var resultado = await repository.GetAllAsync();
+
+            // Assert
+            resultado.Should().NotBeNull();
+            resultado.Should().BeEmpty();
+        }
     }
 }

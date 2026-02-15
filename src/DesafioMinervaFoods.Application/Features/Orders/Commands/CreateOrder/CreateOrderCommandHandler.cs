@@ -32,7 +32,6 @@ namespace DesafioMinervaFoods.Application.Features.Orders.Commands.CreateOrder
                 return Result<OrderRquestedResponse>.Failure(validationResult.Errors.Select(e => e.ErrorMessage));
             }
 
-            var orderId = Guid.NewGuid(); // Você gera o ID aqui para devolver ao usuário
             var userId = _currentUserService.UserId ?? Guid.Empty;
 
             await _eventBus.PublishAsync(new RegisterOrderCommand(

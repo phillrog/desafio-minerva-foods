@@ -31,7 +31,7 @@ namespace DesafioMinervaFoods.Domain.Entities
             AtualizaStatusPedido();
         }
 
-        private void AtualizaStatusPedido()
+        public void AtualizaStatusPedido()
         {
             // Regra da Minerva Foods: Pedidos acima de 5000 precisam de aprovação
             if (TotalAmount > 5000)
