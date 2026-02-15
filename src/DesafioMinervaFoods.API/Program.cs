@@ -33,11 +33,9 @@ var app = builder.Build();
 await app.UseDbInitializationAsync();
 
 // Pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
+
 
 app.UseRouting();
 app.UseCors("Cors");
