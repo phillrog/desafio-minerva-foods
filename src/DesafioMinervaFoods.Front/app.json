@@ -1,0 +1,49 @@
+
+{
+  "expo": {
+    "name": "Desafio Minerva Foods",
+    "slug": "desafio-minerva-foods",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/app-icon-upg.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash-screen.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2b5373"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.minervafoods.desafio",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/app-icon-upg.png",
+        "backgroundColor": "#2b5373"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.minervafoods.desafio"
+    },
+    "web": {
+      "favicon": "./assets/images/final_quest_240x240.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-router",
+      "expo-web-browser"
+    ],
+    "scheme": "desafiominervafoods",
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "backendUrl": "http://localhost:5001"
+    }
+  }
+}
