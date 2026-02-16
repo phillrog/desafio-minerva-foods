@@ -31,7 +31,8 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 🚀 Publish Update (Deploy)
-        # Usamos o working-directory para garantir que o EAS rode no lugar certo
         working-directory: ./src/DesafioMinervaFoods.Front
         run: |
+          # Instala o CLI do EAS caso o action não o tenha feito globalmente
+          npm install -g eas-cli
           eas update --auto --branch production
