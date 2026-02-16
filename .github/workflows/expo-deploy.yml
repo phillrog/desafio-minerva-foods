@@ -1,0 +1,38 @@
+name: CI/CD Desafio Minerva Foods
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          # Caminho para o lock file para otimizar o cache
+          cache-dependency-path: './src/DesafioMinervaFoods.Front/package-lock.json'
+
+      - name: 📦 Install dependencies
+        run: npm install
+        working-directory: ./src/DesafioMinervaFoods.Front
+
+      - name: 🚀 Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-cache: true
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 🚀 Publish Update (Deploy)
+        # Entramos na pasta src e depois na pasta do Front
+        run: |
+          cd src/DesafioMinervaFoods.Front
+          eas update --auto --branch production
