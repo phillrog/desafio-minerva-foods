@@ -43,7 +43,10 @@
     },
     "extra": {
       "router": {},
-      "backendUrl": "http://localhost:5001"
+      "backendUrl": "http://localhost:5001",
+      "eas": {
+        "projectId": "9879c7fa-8991-4084-9841-5379b8b29494"
+      }
     }
   }
 }
