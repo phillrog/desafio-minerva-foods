@@ -108,7 +108,7 @@ export default function OrderDetailsScreen() {
     <SafeAreaView style={styles.container} edges={["top"]}>
       <Stack.Screen
         options={{
-          title: `Pedido #${order.id.substring(0, 6)}`,
+          title: `Pedido #${String(order.id).slice(-6).toUpperCase()}`,
           headerShown: true,
           headerStyle: { backgroundColor: colors.primary },
           headerTintColor: "#ffffff",
