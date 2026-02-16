@@ -1,5 +1,6 @@
 ﻿using DesafioMinervaFoods.Infrastructure.Configs;
 using DesafioMinervaFoods.Infrastructure.Hubs;
+using Microsoft.AspNetCore.HttpOverrides;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
@@ -32,11 +33,15 @@ var app = builder.Build();
 // Inicialização de Dados
 await app.UseDbInitializationAsync();
 
-// Pipeline
-app.Use((context, next) => {
-    context.Request.Scheme = "https";
-    return next();
-});
+// Proxies
+var forwardOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwardOptions.KnownNetworks.Clear();
+forwardOptions.KnownProxies.Clear();
+
+app.UseForwardedHeaders(forwardOptions);
 
 // 2. Swagger (Pode vir no topo)
 app.UseCustomizedSwagger();
