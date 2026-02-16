@@ -6,5 +6,8 @@ namespace DesafioMinervaFoods.Application.Events
         Guid CustomerId,
         Guid PaymentConditionId,
         List<OrderItemRequest> Items,
-        Guid UserId);
+        Guid UserId)
+    {
+        protected RegisterOrderCommand() : this(Guid.Empty, Guid.Empty, new(), Guid.Empty) { }
+    }
 }
