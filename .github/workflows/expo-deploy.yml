@@ -30,6 +30,7 @@ jobs:
           expo-version: latest
           eas-cache: true
           token: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_API_URL: ${{ secrets.API_URL_RAILWAY }}
 
       - name: 🚀 Publish Update (Deploy)
         working-directory: ./src/DesafioMinervaFoods.Front
