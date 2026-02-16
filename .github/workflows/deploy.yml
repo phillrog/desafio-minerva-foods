@@ -1,10 +1,11 @@
-name: CI/CD Desafio Minerva Foods 
+name: CI/CD Desafio Minerva Foods - Backend
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    paths-ignore:
+      - 'src/DesafioMinervaFoods.Front/**'
+
   workflow_dispatch: #"Run workflow" manual
 
 jobs: 

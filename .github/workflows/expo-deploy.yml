@@ -29,13 +29,14 @@ jobs:
         with:
           expo-version: latest
           eas-cache: true
-          token: ${{ secrets.EXPO_TOKEN }}
+          token: ${{ secrets.EXPO_TOKEN }}          
 
       - name: 🚀 Publish Update (Deploy)
         working-directory: ./src/DesafioMinervaFoods.Front
         # token para o npx eas-cli enxergar
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_API_URL: ${{ secrets.API_URL_RAILWAY }}
         run: |
           # Instala o CLI do EAS caso o action não o tenha feito globalmente
           npm install -g eas-cli
