@@ -1,8 +1,10 @@
-name: CI/CD Desafio Minerva Foods
+name: CI/CD Desafio Minerva Foods - Frontend
 
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'src/DesafioMinervaFoods.Front/**'
   workflow_dispatch:
 
 jobs:
@@ -16,10 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          # Caminho para o lock file para otimizar o cache
-          cache-dependency-path: './src/DesafioMinervaFoods.Front/package-lock.json'
-
+          
       - name: 📦 Install dependencies
         run: npm install
         working-directory: ./src/DesafioMinervaFoods.Front
@@ -28,11 +27,12 @@ jobs:
         uses: expo/expo-github-action@v8
         with:
           expo-version: latest
-          eas-cache: true
+          eas-cache: true # O cache do EAS CLI é interno e pode ficar ativo
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 🚀 Publish Update (Deploy)
-        # Entramos na pasta src e depois na pasta do Front
+        working-directory: ./src/DesafioMinervaFoods.Front
         run: |
-          cd src/DesafioMinervaFoods.Front
+          # Se você tiver a URL da API no GitHub Secrets, descomente a linha abaixo:
+          # export EXPO_PUBLIC_API_URL=${{ secrets.EXPO_PUBLIC_API_URL }}
           eas update --auto --branch production
