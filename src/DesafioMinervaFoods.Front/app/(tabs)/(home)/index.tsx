@@ -152,7 +152,7 @@ export default function HomeScreen() {
 
         {/* Card Receita */}
         <View style={[styles.statCard, { backgroundColor: "#2e7d32" }]}>
-          <Text style={styles.statLabel}>RECEITA TOTAL</Text>
+          <Text style={styles.statLabel}>TOTAL GERAL</Text>
 
           <DollarSign size={48} color="rgba(255,255,255,0.25)" />
           <View style={styles.statMainContent}>
@@ -221,17 +221,7 @@ export default function HomeScreen() {
           />
         }
       />
-
-      {/* <View style={styles.fab}>
-        <TouchableOpacity
-          style={styles.fabCircle}
-          onPress={() => router.push("/create-order")}
-          activeOpacity={0.8}
-        >
-          <Plus size={32} color="#FFF" />
-        </TouchableOpacity>
-      </View> */}
-
+      
       <View style={styles.footerContainer}>
         <Text style={styles.footerText}>
           P H I L L I P E R O G E R S O U Z A

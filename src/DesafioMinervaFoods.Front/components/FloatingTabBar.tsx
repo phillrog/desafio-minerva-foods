@@ -114,7 +114,7 @@ export default function FloatingTabBar({
       borderColor: 'rgba(255, 255, 255, 1)',
       ...Platform.select({
         ios: { backgroundColor: theme.dark ? 'rgba(28, 28, 30, 0.8)' : 'rgba(255, 255, 255, 0.6)' },
-        android: { backgroundColor: theme.dark ? 'rgba(28, 28, 30, 0.95)' : 'rgba(255, 255, 255, 0.6)' },
+        android: { backgroundColor:  'rgba(255, 255, 255, 0.6)' },
         web: { backgroundColor: theme.dark ? 'rgba(28, 28, 30, 0.95)' : 'rgba(255, 255, 255, 0.6)', backdropFilter: 'blur(10px)' },
       }),
     },
@@ -146,10 +146,9 @@ export default function FloatingTabBar({
                   <View style={styles.tabContent}>
                     <IconSymbol
                       android_material_icon_name={tab.icon}
-                      ios_icon_name={tab.icon}
-                      // ALTERAÇÃO 2: Ícone aumentado para 32
-                      size={32} 
-                      color={isActive ? theme.colors.primary : (theme.dark ? '#98989D' : '#000000')}
+                      ios_icon_name={tab.icon}                      
+                      size={36} 
+                      color={isActive ? '#000000' : '#8E8E93'}
                     />
                     <Text
                       style={[
@@ -199,7 +198,6 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     flexDirection: 'row',
-    // ALTERAÇÃO 3: Altura aumentada para 80 para caber os ícones maiores
     height: 80, 
     alignItems: 'center',
     paddingHorizontal: 4,
@@ -216,8 +214,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   tabLabel: {
-    // ALTERAÇÃO 4: Label um pouco maior para acompanhar o ícone
-    fontSize: 11, 
+    fontSize: 16, 
     fontWeight: '500',
     marginTop: 2,
   },
