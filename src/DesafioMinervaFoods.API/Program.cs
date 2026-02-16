@@ -12,7 +12,7 @@ builder.Services.AddIdentitySetup(builder.Configuration);
 builder.Services.AddPresentation();
 // Swagger
 builder.Services.AddSwaggerGen();
-builder.Services.AddCustomizedSwagger(typeof(Program));
+builder.Services.AddCustomizedSwagger(builder.Configuration, typeof(Program));
 
 builder.Services.AddControllers()
 .AddJsonOptions(options =>
@@ -33,12 +33,17 @@ var app = builder.Build();
 await app.UseDbInitializationAsync();
 
 // Pipeline
-app.UseSwagger();
-app.UseSwaggerUI();
+app.Use((context, next) => {
+    context.Request.Scheme = "https";
+    return next();
+});
 
-
+// 2. Swagger (Pode vir no topo)
+app.UseCustomizedSwagger();
 app.UseRouting();
+
 app.UseCors("Cors");
+
 
 app.UseAuthentication();
 app.UseAuthorization();
