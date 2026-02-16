@@ -6,6 +6,11 @@ import FloatingTabBar from "@/components/FloatingTabBar";
 export default function TabLayout() {
   return (
     <Tabs
+    screenOptions={{
+      headerShown: false,
+      tabBarActiveTintColor: "#000", 
+      tabBarInactiveTintColor: "#888", 
+    }}
       tabBar={(props) => (
         <FloatingTabBar
           {...props}
@@ -16,6 +21,7 @@ export default function TabLayout() {
           ]}
         />
       )}
+      
       screenOptions={{ headerShown: false }}
     >
       <Tabs.Screen name="(home)" />
