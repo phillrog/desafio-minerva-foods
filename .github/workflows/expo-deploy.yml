@@ -33,7 +33,11 @@ jobs:
 
       - name: 🚀 Publish Update (Deploy)
         working-directory: ./src/DesafioMinervaFoods.Front
+        # token para o npx eas-cli enxergar
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           # Instala o CLI do EAS caso o action não o tenha feito globalmente
           npm install -g eas-cli
+          npx expo install expo-updates -- --legacy-peer-deps
           npx eas-cli update --auto --branch production --non-interactive
