@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
@@ -9,7 +10,7 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
 {
     public static class SwaggerConfig
     {
-        public static IServiceCollection AddCustomizedSwagger(this IServiceCollection services, params Type[] assemblyAnchorTypes)
+        public static IServiceCollection AddCustomizedSwagger(this IServiceCollection services, IConfiguration configuration, params Type[] assemblyAnchorTypes)
         {
             services.AddSwaggerGen(c =>
             {
@@ -32,11 +33,13 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
                     }
                 });
 
+                var serverUrl = configuration.GetValue<string>("SWAGGER:SWAGGER_SERVER_URL");
+                var ambiente = configuration.GetValue<string>("SWAGGER:SWAGGER_AMBIENTE");
                 // 2. Configuração de Servers
                 c.AddServer(new OpenApiServer
                 {
-                    Url = "http://localhost:5001",
-                    Description = "Ambiente de DESENVOLVIMENTO"
+                    Url = serverUrl,
+                    Description = ambiente
                 });
 
 
