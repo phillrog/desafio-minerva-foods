@@ -146,8 +146,7 @@ O app está publicado via **EAS Update** para teste imediato:
 
 Exemplo:
 
-https://github.com/user-attachments/assets/8451feb6-2751-4767-9322-4bdbce40e180
-
+![dcm2](https://github.com/user-attachments/assets/fb32a0ce-54cc-4033-aa56-c752740299a0)
 
 4. Executar localhost
 
