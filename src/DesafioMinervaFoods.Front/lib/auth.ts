@@ -4,7 +4,7 @@ import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 
-const API_URL = Constants.expoConfig?.extra?.backendUrl || "";
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:5001";
 
 export const BEARER_TOKEN_KEY = "minerva-foods_bearer_token";
 
