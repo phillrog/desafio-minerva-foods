@@ -239,7 +239,7 @@ export default function OrderDetailsScreen() {
           )}
         </TouchableOpacity>
 
-        <View style={{ height: 120 }} />
+        <View style={{ height: 140 }} />
       </ScrollView>
 
       <ConfirmModal

@@ -384,7 +384,7 @@ export default function CreateOrderScreen() {
           )}
         </TouchableOpacity>
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: 140 }} />
       </ScrollView>
 
       <Toast
