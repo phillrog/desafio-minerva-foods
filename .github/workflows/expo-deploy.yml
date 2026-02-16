@@ -10,6 +10,7 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: 🏗 Checkout repository
         uses: actions/checkout@v4
@@ -35,4 +36,4 @@ jobs:
         run: |
           # Instala o CLI do EAS caso o action não o tenha feito globalmente
           npm install -g eas-cli
-          eas update --auto --branch production
+          npx eas-cli update --auto --branch production --non-interactive
