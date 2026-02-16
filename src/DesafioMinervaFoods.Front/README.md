@@ -30,7 +30,6 @@ A aplicação se conecta aos seguintes endpoints em `http://localhost:5001`:
 - `GET /api/Orders/{id}` - Detalhes do pedido
 - `POST /api/Orders` - Criar pedido
 - `PUT /api/Orders/{id}/approve` - Aprovar pedido
-- `DELETE /api/Orders/{id}` - Excluir pedido
 - `WS /orderHub` - SignalR para notificações em tempo real
 
 ## 🎨 Design
