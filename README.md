@@ -111,6 +111,8 @@ A aplicação se conecta aos seguintes endpoints em `http://localhost:5001`:
 - `GET /api/Orders/{id}` - Detalhes do pedido
 - `POST /api/Orders` - Criar pedido
 - `PUT /api/Orders/{id}/approve` - Aprovar pedido
+- `GET /api/Customer` - Lista de clientes
+- `GET /api/PaymentCondition` - Lista de formas de pagamentos
 - `WS /orderHub` - SignalR para notificações em tempo real
 
 
