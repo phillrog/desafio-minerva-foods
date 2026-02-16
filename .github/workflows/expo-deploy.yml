@@ -18,7 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          
+
       - name: 📦 Install dependencies
         run: npm install
         working-directory: ./src/DesafioMinervaFoods.Front
@@ -27,12 +27,11 @@ jobs:
         uses: expo/expo-github-action@v8
         with:
           expo-version: latest
-          eas-cache: true # O cache do EAS CLI é interno e pode ficar ativo
+          eas-cache: true
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 🚀 Publish Update (Deploy)
+        # Usamos o working-directory para garantir que o EAS rode no lugar certo
         working-directory: ./src/DesafioMinervaFoods.Front
         run: |
-          # Se você tiver a URL da API no GitHub Secrets, descomente a linha abaixo:
-          # export EXPO_PUBLIC_API_URL=${{ secrets.EXPO_PUBLIC_API_URL }}
           eas update --auto --branch production
