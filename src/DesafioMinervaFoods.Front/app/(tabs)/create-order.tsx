@@ -455,7 +455,7 @@ export default function CreateOrderScreen() {
         onHide={() => setToast({ ...toast, visible: false })}
       />
 
-    <View style={{ height: 130 }} />
+    <View style={{ height: 140 }} />
     </SafeAreaView>
   );
 }

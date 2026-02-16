@@ -241,7 +241,7 @@ export default function OrderDetailsScreen() {
         />
       )}
 
-      <View style={{ height: 130 }} />
+      <View style={{ height: 140 }} />
     </SafeAreaView>
   );
 }
