@@ -145,11 +145,11 @@ export default function FloatingTabBar({
                 >
                   <View style={styles.tabContent}>
                     <IconSymbol
-                      style={{ marginTop: 10 }}
+                      style={{ marginTop: 20 }}
                       android_material_icon_name={tab.icon}
                       ios_icon_name={tab.icon}                      
                       size={36} 
-                      color={isActive ? '#000000' : '#8E8E93'}
+                      color={isActive ? '#ead870' : '#8E8E93'}
                     />
                     <Text
                       style={[
