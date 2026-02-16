@@ -9,11 +9,11 @@ namespace DesafioMinervaFoods.Infrastructure.Configs
             services.AddSignalR(opt => opt.EnableDetailedErrors = true);
 
             services.AddCors(options => {
+                // Permite tudo
                 options.AddPolicy("Cors", policy => {
-                    policy.SetIsOriginAllowed(origin => true)
+                    policy.AllowAnyOrigin()
                           .AllowAnyHeader()
-                          .AllowAnyMethod()
-                          .AllowCredentials();
+                          .AllowAnyMethod();
                 });
             });
 
